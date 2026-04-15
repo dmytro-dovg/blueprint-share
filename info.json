@@ -1,0 +1,11 @@
+{
+  "name": "blueprint-share",
+  "description": "Allows blueprint sharing between two Factorio instances on the same device.",
+  "version": "0.0.1",
+  "title": "Blueprint Share",
+  "author": "imoth_f",
+  "factorio_version": "2.0",
+  "dependencies": [
+      "base >= 2.0"
+  ]
+}
