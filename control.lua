@@ -25,6 +25,26 @@ local function debug_print(msg, player_index)
   game.get_player(player_index).print(message, { sound = defines.print_sound.never })
 end
 
+local function get_data_and_type(player)
+  if not player then
+    return
+  end
+
+  -- Determine what the player is holding
+  local record = player.cursor_record
+  local stack = player.cursor_stack
+
+  -- Record from blueprint library
+  if record and valid_record_types[record.type] then
+    return record.export_record(), record.type
+  end
+
+  -- Stack from cursor
+  if stack and stack.valid_for_read and valid_stack_types[stack.type] then
+    return stack.export_stack(), stack.type
+  end
+end
+
 local function send_payload(payload, port)
   local json = helpers.table_to_json({
     game_version = helpers.game_version,
@@ -59,11 +79,12 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     return
   end
 
-  debug_print("player: " .. player.name .. "(" .. player.index .. ")", player_index)
+  debug_print("player: " .. player.name .. "(" .. player_index .. ")", player_index)
   debug_print("received on port: " ..  event.source_port, player_index)
 
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload then
+    debug_print("invalid payload: " .. tostring(event.payload), player_index)
     player.print({"blueprint-share.error-invalid-payload"})
     return
   end
@@ -85,26 +106,6 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     player.print({"blueprint-share.error-import-failed"})
   end
 end)
-
-local function get_data_and_type(player)
-  if not player then
-    return
-  end
-
-  -- Determine what the player is holding
-  local record = player.cursor_record
-  local stack = player.cursor_stack
-
-  -- Record from blueprint library
-  if record and valid_record_types[record.type] then
-    return record.export_record(), record.type
-  end
-  
-  -- Stack from cursor
-  if stack and stack.valid_for_read and valid_stack_types[stack.type] then
-    return stack.export_stack(), stack.type
-  end
-end
 
 script.on_event("blueprint-share-send", function(event)
   local player_index = event.player_index
