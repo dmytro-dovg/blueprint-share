@@ -1,5 +1,5 @@
 
-function debug_print(msg, player_index)
+local function debug_print(msg, player_index)
   local message = "blueprint-share: debug: " .. msg
   log(message)
   if not player_index then
