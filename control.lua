@@ -1,3 +1,16 @@
+local valid_stack_types = {
+  ["blueprint"] = true,
+  ["blueprint-book"] = true,
+  ["deconstruction-item"] = true,
+  ["upgrade-item"] = true,
+}
+
+local valid_record_types = {
+  ["blueprint"] = true,
+  ["blueprint-book"] = true,
+  ["deconstruction-planner"] = true,
+  ["upgrade-planner"] = true,
+}
 
 local function debug_print(msg, player_index)
   local message = "blueprint-share: debug: " .. msg
@@ -25,16 +38,29 @@ local function send_payload(payload, player_index)
 end
 
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)
+-- Factorio's UDP sockets are bound to 127.0.0.1 only, so this only receives
+-- packets sent to localhost on the same machine.
 script.on_nth_tick(10, function()
+  -- Skip on headless server with no players connected (causes engine crash)
+  if game.is_multiplayer() and #game.connected_players == 0 then
+    return
+  end
   helpers.recv_udp()
 end)
 
 script.on_event(defines.events.on_udp_packet_received, function(event)
   local player_index = event.player_index
+  if player_index == 0 then
+    debug_print("server receiving data is unsupported")
+    return
+  end
   local player = game.get_player(player_index)
-  if not player then return end
+  if not player then
+    debug_print("no player")
+    return
+  end
+  debug_print("player: " .. player.name .. "(" .. player.index .. ")", player_index)
   debug_print("received on port: " ..  event.source_port, player_index)
-  player.print({"blueprint-share.blueprint-received"})
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload then
     player.print({"blueprint-share.error-invalid-payload"})
@@ -48,25 +74,13 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     player.cursor_stack.import_stack(decoded.payload)
   end)
 
-  if not success then
+  if success then
+    player.print({"blueprint-share.blueprint-received"})
+  else
     debug_print("import failed: " .. tostring(err), player_index)
     player.print({"blueprint-share.error-import-failed"})
   end
 end)
-
-local valid_stack_types = {
-  ["blueprint"] = true,
-  ["blueprint-book"] = true,
-  ["deconstruction-item"] = true,
-  ["upgrade-item"] = true,
-}
-
-local valid_record_types = {
-  ["blueprint"] = true,
-  ["blueprint-book"] = true,
-  ["deconstruction-planner"] = true,
-  ["upgrade-planner"] = true,
-}
 
 local function get_data_and_type(player)
   if not player then
