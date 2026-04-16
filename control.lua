@@ -12,12 +12,15 @@ local function debug_print(msg, player_index)
   game.get_player(player_index).print(message, { sound = defines.print_sound.never })
 end
 
-function send_payload(port, payload)
+local function send_payload(payload, player_index)
   local json = helpers.table_to_json({
     game_version = helpers.game_version,
     mod_version = script.active_mods["blueprint-share"],
     payload = payload
   })
+  local port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
+  local player = game.get_player(player_index)
+  player.print({"blueprint-share.sent", port})
   helpers.send_udp(port, json)
 end
 
@@ -51,23 +54,58 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   end
 end)
 
+local valid_stack_types = {
+  ["blueprint"] = true,
+  ["blueprint-book"] = true,
+  ["deconstruction-item"] = true,
+  ["upgrade-item"] = true,
+}
+
+local valid_record_types = {
+  ["blueprint"] = true,
+  ["blueprint-book"] = true,
+  ["deconstruction-planner"] = true,
+  ["upgrade-planner"] = true,
+}
+
+local function get_data_and_type(player)
+  if not player then
+    return
+  end
+
+  -- Determine what the player is holding
+  local record = player.cursor_record
+  local stack = player.cursor_stack
+
+  -- Record from blueprint library
+  if record and valid_record_types[record.type] then
+    return record.export_record(), record.type
+  end
+  
+  -- Stack from cursor
+  if stack and stack.valid_for_read and valid_stack_types[stack.type] then
+    return stack.export_stack(), stack.type
+  end
+end
+
 script.on_event("blueprint-share-send", function(event)
   local player_index = event.player_index
-  local send_port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
   local player = game.get_player(player_index)
-  local stack = player.cursor_stack
-  local record = player.cursor_record
-  if record then
-    debug_print("record type: " .. record.type, player_index)
-    player.print({"blueprint-share.sent", send_port})
-    send_payload(send_port, record.export_record())
-  else
-    if not (stack and stack.valid_for_read and (stack.is_blueprint or stack.is_blueprint_book or stack.is_deconstruction_item or stack.is_upgrade_item)) then
-      player.print({"blueprint-share.hold-blueprint"})
-      return
-    end
-    debug_print("stack type: " .. stack.type, player_index)
-    send_payload(send_port, stack.export_stack())
-    player.print({"blueprint-share.sent", send_port})
+
+  -- Cursor is empty
+  if player.is_cursor_empty() then
+    player.print({"blueprint-share.hold-blueprint"})
+    return
   end
-end)  
+
+  local data, item_type = get_data_and_type(player)
+
+  -- Item held is not valid
+  if not data or not item_type then
+    player.print({"blueprint-share.hold-blueprint"})
+    return
+  end
+
+  debug_print("item type: " .. item_type, player_index)
+  send_payload(data, player_index)
+end)
