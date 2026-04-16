@@ -1,8 +1,9 @@
+-- Also used for mapping stack types to prototype names for l10n
 local valid_stack_types = {
-  ["blueprint"] = true,
-  ["blueprint-book"] = true,
-  ["deconstruction-item"] = true,
-  ["upgrade-item"] = true,
+  ["blueprint"] = "blueprint",
+  ["blueprint-book"] = "blueprint-book",
+  ["deconstruction-item"] = "deconstruction-planner",
+  ["upgrade-item"] = "upgrade-planner",
 }
 
 local valid_record_types = {
@@ -36,12 +37,12 @@ local function get_data_and_type(player)
 
   -- Record from blueprint library
   if record and valid_record_types[record.type] then
-    return record.export_record(), record.type
+    return record.export_record(), {"item-name." .. record.type}
   end
 
   -- Stack from cursor
   if stack and stack.valid_for_read and valid_stack_types[stack.type] then
-    return stack.export_stack(), stack.type
+    return stack.export_stack(), {"item-name." .. valid_stack_types[stack.type]}
   end
 end
 
@@ -66,6 +67,7 @@ script.on_nth_tick(10, function()
   helpers.recv_udp()
 end)
 
+-- Receiving
 script.on_event(defines.events.on_udp_packet_received, function(event)
   local player_index = event.player_index
   if player_index == 0 then
@@ -100,13 +102,14 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   end)
 
   if success then
-    player.print({"blueprint-share.blueprint-received"})
+    player.print({"blueprint-share.blueprint-received", player.cursor_stack.prototype.localised_name})
   else
     debug_print("import failed: " .. tostring(err), player_index)
     player.print({"blueprint-share.error-import-failed"})
   end
 end)
 
+-- Sending
 script.on_event("blueprint-share-send", function(event)
   local player_index = event.player_index
   local player = game.get_player(player_index)
@@ -117,16 +120,15 @@ script.on_event("blueprint-share-send", function(event)
     return
   end
 
-  local data, item_type = get_data_and_type(player)
+  local data, localised_type_name = get_data_and_type(player)
 
   -- Item held is not valid
-  if not data or not item_type then
+  if not data or not localised_type_name then
     player.print({"blueprint-share.hold-blueprint"})
     return
   end
 
-  debug_print("item type: " .. item_type, player_index)
   local port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
   send_payload(data, port)
-  player.print({"blueprint-share.sent", port})
+  player.print({"blueprint-share.sent", localised_type_name, port})
 end)
