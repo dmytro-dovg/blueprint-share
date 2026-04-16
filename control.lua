@@ -78,12 +78,9 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     debug_print("no player")
     return
   end
-  local source_port = event.source_port
+
   debug_print("player: " .. player.name .. "(" .. player_index .. ")", player_index)
-  debug_print("received on port: " ..  source_port, player_index)
-  if source_port == settings.get_player_settings(player_index)["blueprint-share-destination-port"].value then
-    player.print({"blueprint-share.warning-same-port", source_port})
-  end
+  debug_print("received on port: " ..  event.source_port, player_index)
 
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload then
