@@ -25,16 +25,13 @@ local function debug_print(msg, player_index)
   game.get_player(player_index).print(message, { sound = defines.print_sound.never })
 end
 
-local function send_payload(payload, player_index)
+local function send_payload(payload, port)
   local json = helpers.table_to_json({
     game_version = helpers.game_version,
     mod_version = script.active_mods["blueprint-share"],
     payload = payload
   })
 
-  local port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
-  local player = game.get_player(player_index)
-  player.print({"blueprint-share.sent", port})
   helpers.send_udp(port, json)
 end
 
@@ -128,5 +125,7 @@ script.on_event("blueprint-share-send", function(event)
   end
 
   debug_print("item type: " .. item_type, player_index)
-  send_payload(data, player_index)
+  local port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
+  send_payload(data, port)
+  player.print({"blueprint-share.sent", port})
 end)
