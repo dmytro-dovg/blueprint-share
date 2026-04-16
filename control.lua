@@ -31,6 +31,7 @@ local function send_payload(payload, player_index)
     mod_version = script.active_mods["blueprint-share"],
     payload = payload
   })
+
   local port = settings.get_player_settings(player_index)["blueprint-share-destination-port"].value
   local player = game.get_player(player_index)
   player.print({"blueprint-share.sent", port})
@@ -54,22 +55,28 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     debug_print("server receiving data is unsupported")
     return
   end
+
   local player = game.get_player(player_index)
   if not player then
     debug_print("no player")
     return
   end
+
   debug_print("player: " .. player.name .. "(" .. player.index .. ")", player_index)
   debug_print("received on port: " ..  event.source_port, player_index)
+
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload then
     player.print({"blueprint-share.error-invalid-payload"})
     return
   end
+
   debug_print("other client:\n    Factorio " .. decoded.game_version .. "\n    blueprint-share " .. decoded.mod_version, player_index)
+
   if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
     player.print({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version})
   end
+
   local success, err = pcall(function()
     player.cursor_stack.import_stack(decoded.payload)
   end)
