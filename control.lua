@@ -45,7 +45,7 @@ local function get_data_and_type(player)
   local stack = player.cursor_stack
 
   -- Record from blueprint library
-  if record and valid_record_types[record.type] then
+  if record and record.valid and valid_record_types[record.type] then
     local record_name = {"item-name." .. record.type}
     if not record.is_preview then
       return record.export_record(), record_name
@@ -55,7 +55,7 @@ local function get_data_and_type(player)
   end
 
   -- Stack from cursor
-  if stack and stack.valid_for_read and valid_stack_types[stack.type] then
+  if stack and stack.valid and stack.valid_for_read and valid_stack_types[stack.type] then
     return stack.export_stack(), {"item-name." .. valid_stack_types[stack.type]}
   end
 end
