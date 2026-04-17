@@ -1,3 +1,4 @@
+local Settings = require "scripts.settings"
 local Log = {}
 
 local levels = {

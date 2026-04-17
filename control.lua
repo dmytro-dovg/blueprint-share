@@ -1,8 +1,8 @@
 
-Settings = require "scripts.settings"
-Log = require "scripts.log"
-Config = require "scripts.config"
-Util = require "scripts.util"
+local Settings = require "scripts.settings"
+local Log = require "scripts.log"
+local Config = require "scripts.config"
+local Util = require "scripts.util"
 
 local received_buffer = {}
 
