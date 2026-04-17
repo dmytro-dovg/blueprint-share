@@ -1,6 +1,8 @@
-Log = require("scripts/log")
+
+Settings = require "scripts.settings"
+Log = require "scripts.log"
 Config = require "scripts.config"
-Util = require("scripts/util")
+Util = require "scripts.util"
 
 local received_buffer = {}
 
@@ -76,7 +78,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
 
   received_buffer[player.index] = decoded.payload
 
-  local auto_receive = settings.get_player_settings(player.index)["blueprint-share-auto-receive"].value
+  local auto_receive = Settings.auto_receive(player)
   -- Check auto-receive in normal play and always receive in the editor.
   if auto_receive or Util.is_editor then
     Log.debug("Auto-receiving due to " .. (is_editor and "editor environment" or "player setting"), player)
@@ -116,7 +118,7 @@ script.on_event("blueprint-share-send", function(event)
     Log.error({"blueprint-share.error-payload-too-large"}, player)
     return
   end
-  local port = settings.get_player_settings(player.index)["blueprint-share-destination-port"].value
+  local port = Settings.destination_port(player)
   local success, err = pcall(function()
     helpers.send_udp(port, json)
   end)

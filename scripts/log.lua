@@ -18,7 +18,7 @@ end
 
 local function should_print(level, player)
   if not player then return false end
-  local setting = settings.get_player_settings(player.index)["blueprint-share-log-level"].value
+  local setting = Settings.log_level(player)
   return levels[level] <= levels[setting]
 end
 
