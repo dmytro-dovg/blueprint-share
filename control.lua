@@ -63,16 +63,6 @@ local function get_data_and_type(player)
   end
 end
 
-local function send_payload(payload, port)
-  local json = helpers.table_to_json({
-    game_version = helpers.game_version,
-    mod_version = script.active_mods["blueprint-share"],
-    payload = payload
-  })
-
-  helpers.send_udp(port, json)
-end
-
 -- Receiving
 
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)
@@ -174,7 +164,21 @@ script.on_event("blueprint-share-send", function(event)
     return
   end
 
+  local json = helpers.table_to_json({
+    game_version = helpers.game_version,
+    mod_version = script.active_mods["blueprint-share"],
+    payload = data
+  })
+  debug_print("Payload length: " .. tostring(#json), player)
+
+  -- UDP packets cannot exceed 65535 bytes
+  if #json > 65000 then
+    player.print({"blueprint-share.error-payload-too-large"})
+    return
+  end
   local port = settings.get_player_settings(player.index)["blueprint-share-destination-port"].value
-  send_payload(data, port)
+  local success, err = pcall(function()
+    helpers.send_udp(port, json)
+  end)
   player.print({"blueprint-share.sent", localised_type_name, port})
 end)
