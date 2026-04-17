@@ -14,7 +14,15 @@ local debug = {
   default_value = false
 }
 
+local auto_receive = {
+  type = "bool-setting",
+  name = "blueprint-share-auto-receive",
+  setting_type = "runtime-per-user",
+  default_value = true,
+}
+
 data:extend({
+  auto_receive,
   destination_port,
   debug,
 })
