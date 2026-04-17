@@ -13,7 +13,7 @@ local function log_to_file(level, msg)
   if type(msg) == "string" then
     log("blueprint-share: " .. level .. ": " .. msg)
   elseif type(msg) == "table" then
-    log("blueprint-share: " .. level .. ": " .. msg[1])
+    log("blueprint-share: " .. level .. ": " .. helpers.table_to_json(msg))
   end
 end
 
