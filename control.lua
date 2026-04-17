@@ -1,64 +1,8 @@
-
 Log = require("scripts/log")
+Config = require "scripts.config"
+Util = require("scripts/util")
 
 local received_buffer = {}
-
--- Also used for mapping stack types to prototype names for l10n
-local valid_stack_types = {
-  ["blueprint"] = "blueprint",
-  ["blueprint-book"] = "blueprint-book",
-  ["deconstruction-item"] = "deconstruction-planner",
-  ["upgrade-item"] = "upgrade-planner",
-}
-
-local valid_record_types = {
-  ["blueprint"] = true,
-  ["blueprint-book"] = true,
-  ["deconstruction-planner"] = true,
-  ["upgrade-planner"] = true,
-}
-
-local function guard_player(event)
-  local player_index = event.player_index
-
-  -- Disable for servers
-  if player_index == 0 then
-    Log.debug("server receiving data is unsupported")
-    return
-  end
-
-  local player = game.get_player(player_index)
-  if not player then
-    Log.debug("no player")
-    return
-  end
-  return player
-end
-
-local function get_data_and_type(player)
-  if not player then
-    return
-  end
-
-  -- Determine what the player is holding
-  local record = player.cursor_record
-  local stack = player.cursor_stack
-
-  -- Record from blueprint library
-  if record and record.valid and valid_record_types[record.type] then
-    local record_name = {"item-name." .. record.type}
-    if not record.is_preview then
-      return record.export_record(), record_name
-    else
-      Log.warn({"blueprint-share.warning-record-in-preview"}, player)
-    end
-  end
-
-  -- Stack from cursor
-  if stack and stack.valid and stack.valid_for_read and valid_stack_types[stack.type] then
-    return stack.export_stack(), {"item-name." .. valid_stack_types[stack.type]}
-  end
-end
 
 -- Receiving
 
@@ -96,11 +40,11 @@ local function import_from_buffer(player)
 end
 
 script.on_event("blueprint-share-receive", function(event)
-  local player = guard_player(event)
+  local player = Util.valid_player(event)
   if not player then return end
 
   Log.debug("Manually receiving", player)
-  if player.controller_type == defines.controllers.editor then
+  if Util.is_editor then
     Log.debug("Editor detected", player)
     helpers.recv_udp()
   else
@@ -109,7 +53,7 @@ script.on_event("blueprint-share-receive", function(event)
 end)
 
 script.on_event(defines.events.on_udp_packet_received, function(event)
-  local player = guard_player(event)
+  local player = Util.valid_player(event)
   if not player then return end
 
   Log.debug("on_udp_packet_received", player)
@@ -134,8 +78,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
 
   local auto_receive = settings.get_player_settings(player.index)["blueprint-share-auto-receive"].value
   -- Check auto-receive in normal play and always receive in the editor.
-  local is_editor = player.controller_type == defines.controllers.editor
-  if auto_receive or is_editor then
+  if auto_receive or Util.is_editor then
     Log.debug("Auto-receiving due to " .. (is_editor and "editor environment" or "player setting"), player)
     import_from_buffer(player)
   end
@@ -144,7 +87,7 @@ end)
 -- Sending
 
 script.on_event("blueprint-share-send", function(event)
-  local player = guard_player(event)
+  local player = Util.valid_player(event)
   if not player then return end
 
   -- Cursor is empty
@@ -153,7 +96,7 @@ script.on_event("blueprint-share-send", function(event)
     return
   end
 
-  local data, localised_type_name = get_data_and_type(player)
+  local data, localised_type_name = Util.export_cursor_data(player)
 
   -- Item held is not valid
   if not data or not localised_type_name then
@@ -169,7 +112,7 @@ script.on_event("blueprint-share-send", function(event)
   Log.debug("Payload length: " .. tostring(#json), player)
 
   -- UDP packets cannot exceed 65535 bytes
-  if #json > 65000 then
+  if #json > Config.max_udp_packet_size then
     Log.error({"blueprint-share.error-payload-too-large"}, player)
     return
   end
