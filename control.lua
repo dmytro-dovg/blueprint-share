@@ -20,6 +20,8 @@ local valid_record_types = {
 
 local function guard_player(event)
   local player_index = event.player_index
+
+  -- Disable for servers
   if player_index == 0 then
     Log.debug("server receiving data is unsupported")
     return
@@ -44,7 +46,12 @@ local function get_data_and_type(player)
 
   -- Record from blueprint library
   if record and valid_record_types[record.type] then
-    return record.export_record(), {"item-name." .. record.type}
+    local record_name = {"item-name." .. record.type}
+    if not record.is_preview then
+      return record.export_record(), record_name
+    else
+      Log.warn({"blueprint-share.warning-record-in-preview"}, player)
+    end
   end
 
   -- Stack from cursor
