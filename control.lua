@@ -64,7 +64,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   Log.debug("received on port: " ..  event.source_port, player)
 
   local decoded = helpers.json_to_table(event.payload)
-  if not decoded or not decoded.payload then
+  if not decoded or not decoded.payload or not decoded.game_version or not decoded.mod_version then
     Log.debug("invalid payload: " .. tostring(event.payload), player)
     Log.info({"blueprint-share.error-invalid-payload"}, player)
     return
