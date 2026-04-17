@@ -18,7 +18,6 @@ local valid_record_types = {
   ["upgrade-planner"] = true,
 }
 
-
 local function guard_player(event)
   local player_index = event.player_index
   if player_index == 0 then
@@ -81,10 +80,10 @@ local function import_from_buffer(player)
 
     if success then
       local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
-      player.print({"blueprint-share.blueprint-received", name})
+      Log.info({"blueprint-share.blueprint-received", name}, player)
     else
       Log.debug("import failed: " .. tostring(err), player)
-      player.print({"blueprint-share.error-import-failed"})
+      Log.info({"blueprint-share.error-import-failed"}, player)
     end
   end
 end
@@ -114,14 +113,14 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload then
     Log.debug("invalid payload: " .. tostring(event.payload), player)
-    player.print({"blueprint-share.error-invalid-payload"})
+    Log.info({"blueprint-share.error-invalid-payload"}, player)
     return
   end
 
   Log.debug("other client:\n    Factorio " .. decoded.game_version .. "\n    blueprint-share " .. decoded.mod_version, player)
 
   if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
-    player.print({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version})
+    Log.info({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
   end
 
   received_buffer[player.index] = decoded.payload
@@ -143,7 +142,7 @@ script.on_event("blueprint-share-send", function(event)
 
   -- Cursor is empty
   if player.is_cursor_empty() then
-    player.print({"blueprint-share.hold-blueprint"})
+    Log.info({"blueprint-share.hold-blueprint"}, player)
     return
   end
 
@@ -151,7 +150,7 @@ script.on_event("blueprint-share-send", function(event)
 
   -- Item held is not valid
   if not data or not localised_type_name then
-    player.print({"blueprint-share.hold-blueprint"})
+    Log.info({"blueprint-share.hold-blueprint"}, player)
     return
   end
 
@@ -164,12 +163,12 @@ script.on_event("blueprint-share-send", function(event)
 
   -- UDP packets cannot exceed 65535 bytes
   if #json > 65000 then
-    player.print({"blueprint-share.error-payload-too-large"})
+    Log.error({"blueprint-share.error-payload-too-large"}, player)
     return
   end
   local port = settings.get_player_settings(player.index)["blueprint-share-destination-port"].value
   local success, err = pcall(function()
     helpers.send_udp(port, json)
   end)
-  player.print({"blueprint-share.sent", localised_type_name, port})
+  Log.info({"blueprint-share.sent", localised_type_name, port}, player)
 end)

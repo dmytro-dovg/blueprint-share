@@ -7,11 +7,12 @@ local destination_port = {
   maximum_value = 65535,
 }
 
-local debug = {
-  type = "bool-setting",
-  name = "blueprint-share-debug",
+local log_level = {
+  type = "string-setting",
+  name = "blueprint-share-log-level",
   setting_type = "runtime-per-user",
-  default_value = false
+  allowed_values = {"debug", "info", "warn", "error", "quiet"},
+  default_value = "info",
 }
 
 local auto_receive = {
@@ -24,5 +25,5 @@ local auto_receive = {
 data:extend({
   auto_receive,
   destination_port,
-  debug,
+  log_level,
 })
