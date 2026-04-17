@@ -1,4 +1,4 @@
-received_buffer = {}
+local received_buffer = {}
 
 -- Also used for mapping stack types to prototype names for l10n
 local valid_stack_types = {
@@ -73,7 +73,6 @@ local function send_payload(payload, port)
   helpers.send_udp(port, json)
 end
 
-
 -- Receiving
 
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)
@@ -89,12 +88,23 @@ script.on_nth_tick(10, function()
   helpers.recv_udp()
 end)
 
-function import_from_buffer(player)
+local function import_from_buffer(player)
   local payload = received_buffer[player.index]
   if payload then
-    player.cursor_stack.import_stack(payload)
-    -- Clear bufferred item
+    local success, err = pcall(function()
+      player.cursor_stack.import_stack(payload)
+    end)
+
+    -- Clear buffered item
     received_buffer[player.index] = nil
+
+    if success then
+      local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
+      player.print({"blueprint-share.blueprint-received", name})
+    else
+      debug_print("import failed: " .. tostring(err), player)
+      player.print({"blueprint-share.error-import-failed"})
+    end
   end
 end
 
@@ -103,7 +113,12 @@ script.on_event("blueprint-share-receive", function(event)
   if not player then return end
 
   debug_print("Manually receiving", player)
-  import_from_buffer(player)
+  if player.controller_type == defines.controllers.editor then
+    debug_print("Editor detected", player)
+    helpers.recv_udp()
+  else
+    import_from_buffer(player)
+  end
 end)
 
 script.on_event(defines.events.on_udp_packet_received, function(event)
@@ -128,25 +143,19 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     player.print({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version})
   end
 
-  local success, err = pcall(function()
-    received_buffer[player.index] = decoded.payload
-  end)
+  received_buffer[player.index] = decoded.payload
 
   local auto_receive = settings.get_player_settings(player.index)["blueprint-share-auto-receive"].value
-  if auto_receive then
-    debug_print("Auto-receiving", player)
+  -- Check auto-receive in normal play and always receive in the editor.
+  local is_editor = player.controller_type == defines.controllers.editor
+  if auto_receive or is_editor then
+    debug_print("Auto-receiving due to " .. (is_editor and "editor environment" or "player setting"), player)
     import_from_buffer(player)
-  end
-
-  if success then
-    player.print({"blueprint-share.blueprint-received", player.cursor_stack.prototype.localised_name})
-  else
-    debug_print("import failed: " .. tostring(err), player)
-    player.print({"blueprint-share.error-import-failed"})
   end
 end)
 
 -- Sending
+
 script.on_event("blueprint-share-send", function(event)
   local player = guard_player(event)
   if not player then return end
