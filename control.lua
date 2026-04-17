@@ -123,5 +123,11 @@ script.on_event("blueprint-share-send", function(event)
   local success, err = pcall(function()
     helpers.send_udp(port, json)
   end)
-  Log.info({"blueprint-share.sent", localised_type_name, port}, player)
+
+  if success then
+    Log.info({"blueprint-share.sent", localised_type_name, port}, player)
+  else
+    Log.debug("failed to send: " .. tostring(err), player)
+    Log.error({"blueprint-share.error-failed-to-send", localised_type_name, port}, player)
+  end
 end)
