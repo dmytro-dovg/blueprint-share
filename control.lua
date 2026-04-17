@@ -46,7 +46,7 @@ script.on_event("blueprint-share-receive", function(event)
   if not player then return end
 
   Log.debug("Manually receiving", player)
-  if Util.is_editor() then
+  if Util.is_editor(player) then
     Log.debug("Editor detected", player)
     helpers.recv_udp()
   else
@@ -80,7 +80,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
 
   local auto_receive = Settings.auto_receive(player)
   -- Check auto-receive in normal play and always receive in the editor.
-  local is_editor = Util.is_editor()
+  local is_editor = Util.is_editor(player)
   if auto_receive or is_editor then
     Log.debug("Auto-receiving due to " .. (is_editor and "editor environment" or "player setting"), player)
     import_from_buffer(player)

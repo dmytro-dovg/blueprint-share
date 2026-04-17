@@ -1,3 +1,5 @@
+local Log = require "scripts.log"
+
 local Util = {}
 
 -- Also used for mapping stack types to prototype names for l10n
@@ -48,6 +50,7 @@ function Util.export_cursor_data(player)
       return record.export_record(), record_name
     else
       Log.warn({"blueprint-share.warning-record-in-preview"}, player)
+      return
     end
   end
 
@@ -58,7 +61,7 @@ function Util.export_cursor_data(player)
 end
 
 function Util.is_editor(player)
-    return player.controller_type == defines.controllers.editor
+  return player.controller_type == defines.controllers.editor
 end
 
 return Util
