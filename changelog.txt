@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2026-04-18
+  Features:
+    - Share blueprints, blueprint books, deconstruction planners, and upgrade planners between two Factorio instances over localhost UDP.
+    - Send and receive hotkeys (Ctrl + B, Ctrl + R).
+    - Per-player settings: destination port, auto-receive, log level.
+    - English and Ukrainian localisations.
