@@ -34,8 +34,8 @@ local function import_from_buffer(player)
       local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
       Log.info({"blueprint-share.blueprint-received", name}, player)
     else
-      Log.debug("import failed: " .. tostring(err), player)
-      Log.info({"blueprint-share.error-import-failed"}, player)
+      Log.debug("Import failed: " .. tostring(err), player)
+      Log.error({"blueprint-share.error-import-failed"}, player)
     end
   end
 end
@@ -58,25 +58,28 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   if not player then return end
 
   -- Polling is skipped while paused, so a received packet must be from the manual trigger.
+  -- on_nth_tick doesn't fire while paused, so a packet arriving in this state can only be from
+  -- the manual hotkey's direct recv_udp() call.
   local is_manual_trigger = game.tick_paused
   local auto_receive = Settings.auto_receive(player)
 
-  Log.debug("on_udp_packet_received", player)
-
-  Log.debug("player: " .. player.name .. "(" .. player.index .. ")", player)
-  Log.debug("received on port: " ..  event.source_port, player)
+  Log.debug("Player: " .. player.name .. "(" .. player.index .. ")", player)
+  Log.debug("Received on port: " ..  event.source_port, player)
 
   local decoded = helpers.json_to_table(event.payload)
   if not decoded or not decoded.payload or not decoded.game_version or not decoded.mod_version then
-    Log.debug("invalid payload: " .. tostring(event.payload), player)
-    Log.info({"blueprint-share.error-invalid-payload"}, player)
+    Log.debug("Invalid payload: " .. tostring(event.payload), player)
+    Log.error({"blueprint-share.error-invalid-payload"}, player)
     return
   end
 
-  Log.debug("other client:\n    Factorio " .. decoded.game_version .. "\n    blueprint-share " .. decoded.mod_version, player)
+  Log.debug(string.format(
+    "Received from:\n    Factorio %s\n    blueprint-share %s",
+    decoded.game_version, decoded.mod_version 
+    , player))
 
   if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
-    Log.info({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
+    Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
   end
 
   received_buffer[player.index] = decoded.payload
@@ -129,7 +132,7 @@ script.on_event("blueprint-share-send", function(event)
   if success then
     Log.info({"blueprint-share.sent", localised_type_name, port}, player)
   else
-    Log.debug("failed to send: " .. tostring(err), player)
+    Log.debug("Failed to send: " .. tostring(err), player)
     Log.error({"blueprint-share.error-failed-to-send", localised_type_name, port}, player)
   end
 end)
