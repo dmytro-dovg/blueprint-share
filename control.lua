@@ -76,7 +76,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   Log.debug(string.format(
     "Received from:\n    Factorio %s\n    blueprint-share %s",
     decoded.game_version, decoded.mod_version 
-    , player))
+    ), player)
 
   if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
     Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
