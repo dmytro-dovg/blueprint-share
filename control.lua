@@ -1,4 +1,3 @@
-
 local Settings = require "scripts.settings"
 local Log = require "scripts.log"
 local Config = require "scripts.config"
@@ -46,8 +45,8 @@ script.on_event("blueprint-share-receive", function(event)
   if not player then return end
 
   Log.debug("Manually receiving", player)
-  if Util.is_editor(player) then
-    Log.debug("Editor detected", player)
+  if game.tick_paused then
+    Log.debug("Game paused, manually checking UDP buffer.", player)
     helpers.recv_udp()
   else
     import_from_buffer(player)
@@ -57,6 +56,10 @@ end)
 script.on_event(defines.events.on_udp_packet_received, function(event)
   local player = Util.valid_player(event)
   if not player then return end
+
+  -- Polling is skipped while paused, so a received packet must be from the manual trigger.
+  local is_manual_trigger = game.tick_paused
+  local auto_receive = Settings.auto_receive(player)
 
   Log.debug("on_udp_packet_received", player)
 
@@ -78,11 +81,10 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
 
   received_buffer[player.index] = decoded.payload
 
-  local auto_receive = Settings.auto_receive(player)
-  -- Check auto-receive in normal play and always receive in the editor.
-  local is_editor = Util.is_editor(player)
-  if auto_receive or is_editor then
-    Log.debug("Auto-receiving due to " .. (is_editor and "editor environment" or "player setting"), player)
+  -- Always import if triggered manually.
+  -- Otherwise check auto-receive setting during polling.
+  if auto_receive or is_manual_trigger then
+    Log.debug("Received due to " .. (is_manual_trigger and "manual trigger" or "auto-receive setting"), player)
     import_from_buffer(player)
   end
 end)

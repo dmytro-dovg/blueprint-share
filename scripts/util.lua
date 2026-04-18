@@ -60,8 +60,4 @@ function Util.export_cursor_data(player)
   end
 end
 
-function Util.is_editor(player)
-  return player.controller_type == defines.controllers.editor
-end
-
 return Util
