@@ -1,15 +1,21 @@
 local Settings = {}
 
+local mod_prefix = "blueprint-share-"
+
+local function get(player, key)
+  return settings.get_player_settings(player.index)[mod_prefix .. key].value
+end
+
 function Settings.auto_receive(player)
-  return settings.get_player_settings(player.index)["blueprint-share-auto-receive"].value
+  return get(player, "auto-receive")
 end
 
 function Settings.log_level(player)
-  return settings.get_player_settings(player.index)["blueprint-share-log-level"].value
+  return get(player, "log-level")
 end
 
 function Settings.destination_port(player)
-  return settings.get_player_settings(player.index)["blueprint-share-destination-port"].value
+  return get(player, "destination-port")
 end
 
 return Settings
