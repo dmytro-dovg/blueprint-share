@@ -1,0 +1,6 @@
+.git/*
+.vscode/*
+.exclude
+build
+build/
+*.zip

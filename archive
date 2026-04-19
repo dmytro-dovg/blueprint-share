@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [-h] [-n NAME] [-v VERSION] [OUTPUT_DIR]
+
+Create a zip archive of the current directory, excluding patterns from
+.exclude, and copy it to OUTPUT_DIR.
+
+Options:
+  -h            Show this help message and exit
+  -n NAME       Package name (default: current directory name)
+  -v VERSION    Version string to append to the archive name
+
+Arguments:
+  OUTPUT_DIR    Destination directory for the archive (default: build)
+
+Examples:
+  ${0##*/}
+  ${0##*/} -n package -v 1.2.3
+  ${0##*/} -n package -v 1.2.3 dist
+EOF
+}
+
+main() {
+    local flag package_name archive_name version
+    local name_elements=()
+    while getopts "hn:v:" flag; do
+        case "$flag" in
+            h) usage; return ;;
+            n) package_name="$OPTARG" ;;
+            v) version="$OPTARG" ;;
+            *) usage >&2; return 1 ;;
+        esac
+    done
+
+    shift $((OPTIND - 1))
+
+    local output_dir="${1:-build}"
+
+    [[ -z $package_name ]] && package_name="${PWD##*/}"
+    name_elements+=("$package_name")
+    [[ -n $version ]] && name_elements+=("$version")
+    archive_name="$(IFS=_; printf "${name_elements[*]}").zip"
+
+    zip -r "${archive_name}" . -x@.exclude &>/dev/null
+    mkdir -p "$output_dir"
+    mv "$archive_name" "$output_dir/"
+    
+    echo "$output_dir/$archive_name"
+}
+
+main "$@"
