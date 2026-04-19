@@ -4,8 +4,9 @@ usage() {
     cat <<EOF
 Usage: ${0##*/} [-h] [-n NAME] [-v VERSION] [OUTPUT_DIR]
 
-Create a zip archive of the current directory, excluding patterns from
-.exclude, and copy it to OUTPUT_DIR.
+Create a zip archive of the current directory with a top-level
+<NAME>_<VERSION> folder, excluding patterns from .exclude,
+and copy it to OUTPUT_DIR.
 
 Options:
   -h            Show this help message and exit
@@ -23,7 +24,7 @@ EOF
 }
 
 main() {
-    local flag package_name archive_name version
+    local flag package_name archive_name version prefix temp_dir
     local name_elements=()
     while getopts "hn:v:" flag; do
         case "$flag" in
@@ -41,12 +42,18 @@ main() {
     [[ -z $package_name ]] && package_name="${PWD##*/}"
     name_elements+=("$package_name")
     [[ -n $version ]] && name_elements+=("$version")
-    archive_name="$(IFS=_; printf "${name_elements[*]}").zip"
+    prefix="$(IFS=_; printf "${name_elements[*]}")"
+    archive_name="${prefix}.zip"
 
-    zip -r "${archive_name}" . -x@.exclude &>/dev/null
+    temp_dir="$(mktemp -d)"
+    trap 'rm -rf "$temp_dir"' EXIT
+
+    rsync -a --exclude-from=.exclude ./ "$temp_dir/$prefix/"
+    (cd "$temp_dir" && zip -r "$archive_name" "$prefix" &>/dev/null)
+
     mkdir -p "$output_dir"
-    mv "$archive_name" "$output_dir/"
-    
+    mv "$temp_dir/$archive_name" "$output_dir/$archive_name"
+
     echo "$output_dir/$archive_name"
 }
 
