@@ -9,10 +9,14 @@ Requires Factorio **2.0** or newer.
 Two-way sharing between a Steam copy and a second standalone copy:
 
 1. **Get a second copy.** Steam runs only one instance at a time. Download a standalone build of the same version from <https://www.factorio.com/download> (free for anyone who owns Factorio) and extract it outside the Steam install.
+   - **Linux** - the tarball is portable and works out of the box.
+   - **Windows** - use the **ZIP package**, not the installer. The installer shares `%APPDATA%\Factorio` with the Steam copy, so only one can run at a time.
+   - **macOS** - untested. The `factorio.app` shares `~/Library/Application Support/factorio` with the Steam copy. See the [Factorio Wiki](https://wiki.factorio.com/Application_directory#Changing_the_user_data_directory) to separate them.
 2. **Pick two free ports above 1024** - for example `25001` and `25002`.
 3. **Set the launch flag on each copy** so it listens on its own port:
    - **Steam copy** - right-click Factorio -> **Properties -> Launch Options**, enter `--enable-lua-udp=25001`.
-   - **Standalone copy** - launch the binary directly: `./factorio --enable-lua-udp=25002`.
+   - **Standalone (Linux)** - launch the binary directly: `./factorio --enable-lua-udp=25002`.
+   - **Standalone (Windows)** - launch from a terminal as `factorio.exe --enable-lua-udp=25002`, or create a shortcut to `bin\x64\factorio.exe` and append ` --enable-lua-udp=25002` to the **Target** field.
 4. **Point each copy at the other** in **Mod settings -> Per player -> Blueprint Share -> Destination port**: Steam copy -> `25002`, standalone copy -> `25001`.
 
 **One-way only?** Only the receiver needs the launch flag. The sender just needs **Destination port** pointing at the receiver's listening port.
@@ -20,7 +24,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
 ## Usage
 
 - **Ctrl + B** - Send the blueprint, book, or planner currently in your cursor (or picked up from the blueprint library).
-- **Ctrl + R** - Manually receive. With **Auto-receive** on (default) incoming blueprints land in your cursor automatically; use the hotkey in the Map Editor or when Auto-receive is off.
+- **Ctrl + R** - Manually receive. With **Auto-receive** on (default) incoming blueprints land in your cursor automatically. Use the hotkey in the Map Editor or when Auto-receive is off.
 
 ## Settings
 
@@ -30,7 +34,7 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 |---|---|---|
 | Destination port | `25002` | UDP port to send to. Must match the other instance's `--enable-lua-udp=<port>`. |
 | Auto-receive blueprints | `on` | Automatically place incoming blueprints in the cursor. Disable if you prefer to trigger imports with the hotkey. |
-| Log level | `Info` | In-game message verbosity. `Quiet` hides all messages; `Debug` shows full diagnostics. The mod log file always records full output. |
+| Log level | `Info` | In-game message verbosity. `Quiet` hides all messages. `Debug` shows full diagnostics. The mod log file always records full output. |
 
 ## Limitations
 
@@ -44,8 +48,11 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 - **Invalid payload.** - The other instance sent a packet the mod couldn't decode. Usually means a different, unrelated process is sending UDP to your port. Change the port.
 - **Blueprint is too large.** - The serialised blueprint exceeds the UDP limit. Send a smaller book.
 - **Could not send...** - The OS rejected the send. Check that the destination port is valid and that no firewall rule is blocking localhost UDP.
-- **Version mismatch warning** - The other instance is on a different Factorio version. Minor differences usually import fine; major versions may fail silently.
+- **Version mismatch warning** - The other instance is on a different Factorio version. Minor differences usually import fine, major versions may fail with `Import failed.`
+- **Import failed.** - The payload arrived but couldn't be imported into the cursor. Usually a Factorio version mismatch between sender and receiver.
+- **Blueprint is in preview.** - The library blueprint hasn't finished syncing with the server. Wait for the sync and resend.
 - **Nothing happens on receive** - Confirm the destination instance was launched with `--enable-lua-udp=<port>`.
+- **Two copies fighting over the same saves/mods/config** - Both installs share the same user data directory. On Windows this appears as `Couldn't create lock file Factorio\.lock: 32 Is another instance already running?` when starting the second copy. See the [Factorio Wiki](https://wiki.factorio.com/Application_directory#Changing_the_user_data_directory) for per-platform write paths and how to make a copy portable.
 
 ## License
 
