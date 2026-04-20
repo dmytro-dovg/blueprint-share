@@ -4,6 +4,8 @@ Send blueprints, blueprint books, deconstruction planners, and upgrade planners 
 
 Requires Factorio **2.0** or newer.
 
+![Demo](demo.gif)
+
 ## Quickstart
 
 Two-way sharing between a Steam copy and a second standalone copy:
