@@ -10,7 +10,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
 
 1. **Get a second copy.** Steam runs only one instance at a time. Download a standalone build of the same version from <https://www.factorio.com/download> (free for anyone who owns Factorio) and extract it outside the Steam install.
 > **Windows:** grab the **ZIP package**, not the installer. The installer shares `%APPDATA%\Factorio` with the Steam copy, so only one can run at a time.
-2. **Use port `25001` for the Steam copy and `25002` for the standalone.** Change these only if they conflict with something else on your machine.
+2. **Use port `25001` for the Steam copy and `25002` for the standalone.** Change them only if another app is already using those ports.
 3. **Set the launch flag on each copy** so it listens on its own port:
    - **Steam copy** - right-click Factorio -> **Properties -> Launch Options**, enter `--enable-lua-udp=25001`.
    - **Standalone (Linux)** - launch from a terminal as `./factorio --enable-lua-udp=25002`.
