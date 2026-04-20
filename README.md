@@ -17,7 +17,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
    - **Standalone (Windows)** - create a shortcut to `bin\x64\factorio.exe` and append ` --enable-lua-udp=25002` to the **Target** field. Or launch from a terminal: `factorio.exe --enable-lua-udp=25002`.
    - **Standalone (macOS):**
      - Put `factorio.app` in its own folder, e.g. `~/Applications/Factorio-Standalone/`.
-     - Create a `config.cfg` next to it with:
+     - Create a `config.cfg` next to it with the contents below, or download the ready-made [`macos/config.cfg`](macos/config.cfg) from this repo:
        ```ini
        ; version=13
        [path]
