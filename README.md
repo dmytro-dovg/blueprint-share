@@ -15,14 +15,17 @@ Two-way sharing between a Steam copy and a second standalone copy:
    - **Steam copy** - right-click Factorio -> **Properties -> Launch Options**, enter `--enable-lua-udp=25001`.
    - **Standalone (Linux)** - launch from a terminal as `./factorio --enable-lua-udp=25002`.
    - **Standalone (Windows)** - launch from a terminal as `factorio.exe --enable-lua-udp=25002`, or create a shortcut to `bin\x64\factorio.exe` and append ` --enable-lua-udp=25002` to the **Target** field.
-   - **Standalone (macOS)** - launch from a terminal as `open ./factorio.app --args -c /path/to/config.cfg --enable-lua-udp=25002`, where `config.cfg` points at a separate write directory:
-     ```ini
-     ; version=13
-     [path]
-     read-data=__PATH__executable__/../data
-     write-data=/absolute/path/to/standalone-data
-     ```
-4. **Point each copy at the other** in **Mod settings -> Per player -> Blueprint Share -> Destination port**: Steam copy -> `25002`, standalone copy -> `25001`.
+   - **Standalone (macOS):**
+     - Put `factorio.app` in its own folder, e.g. `~/Applications/Factorio-Standalone/`.
+     - Create a `config.cfg` next to it with:
+       ```ini
+       ; version=13
+       [path]
+       read-data=__PATH__executable__/../data
+       write-data=__PATH__executable__/../../../factorio-data
+       ```
+     - From that folder, run `open ./factorio.app --args -c ./config.cfg --enable-lua-udp=25002`. Factorio will create `factorio-data/` alongside `factorio.app` for saves, mods, and config.
+4. **On the standalone,** set **Mod settings -> Per player -> Blueprint Share -> Destination port** to `25001`. The Steam copy needs no change - its default already points at `25002`.
 
 > **One-way only:** Only the receiver needs the launch flag. The sender just needs **Destination port** pointing at the receiver's listening port.
 
