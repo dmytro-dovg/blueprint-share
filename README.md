@@ -1,3 +1,5 @@
+![Icon](thumbnail.png)
+
 # Blueprint Share
 
 Send blueprints, blueprint books, deconstruction planners, and upgrade planners between two Factorio instances on the same machine, over localhost UDP. Handy when running a regular save and a map editor side-by-side.
