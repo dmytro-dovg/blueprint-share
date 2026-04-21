@@ -15,3 +15,5 @@ macos
 macos/*
 *.gif
 archive
+docs
+docs/*
