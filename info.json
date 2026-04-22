@@ -1,7 +1,7 @@
 {
   "name": "blueprint-share",
   "description": "Share blueprints between two Factorio instances on the same device over UDP. Also supports blueprint books, deconstruction planners, and upgrade planners.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Blueprint Share",
   "author": "imoth_f",
   "factorio_version": "2.0",

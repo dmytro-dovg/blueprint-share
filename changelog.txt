@@ -1,5 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
+Date: 2026-04-22
+  Bugfixed:
+    - Fixed blueprint being received multiple times when connected to a server.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
 Date: 2026-04-21
   Features:
     - Share blueprints, blueprint books, deconstruction planners, and upgrade planners between two Factorio instances over localhost UDP.
