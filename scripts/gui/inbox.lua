@@ -267,10 +267,4 @@ function this.on_click(event)
   this.update(player)
 end
 
-function this.on_closed(event)
-  if event.element and event.element.name == consts.gui.inbox.frame then
-    event.element.destroy()
-  end
-end
-
 return this
