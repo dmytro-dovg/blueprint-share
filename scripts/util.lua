@@ -31,11 +31,10 @@ function Util.valid_player(event)
   end
 
   local player = game.get_player(player_index)
-  if not player then
-    Log.debug("no player")
-    return
+  if player and player.valid then
+    return player
   end
-  return player
+  Log.debug("no player")
 end
 
 function Util.export_cursor_data(player)

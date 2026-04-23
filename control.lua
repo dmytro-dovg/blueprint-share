@@ -2,8 +2,47 @@ local Settings = require "scripts.settings"
 local Log = require "scripts.log"
 local Config = require "scripts.config"
 local Util = require "scripts.util"
+local Inbox = require "scripts.gui.inbox"
 
-local received_buffer = {}
+local INBOX_SIZE = 5
+
+-- Initialisation
+
+local function init_player(player)
+  storage.players[player.index] = storage.players[player.index] or {}
+  local player_storage = storage.players[player.index]
+  player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(INBOX_SIZE)
+end
+
+script.on_init(function()
+  storage.players = {}
+  for _, player in pairs(game.players) do
+    init_player(player)
+  end
+end)
+
+script.on_configuration_changed(function()
+  storage.players = storage.players or {}
+  for _, player in pairs(game.players) do
+    init_player(player)
+  end
+end)
+
+script.on_event(defines.events.on_player_created, function(event)
+  init_player(game.get_player(event.player_index))
+end)
+
+script.on_event(defines.events.on_player_removed, function(event)
+  local player_storage = storage.players[event.player_index]
+  if player_storage and player_storage.inbox_inventory and player_storage.inbox_inventory.valid then
+    player_storage.inbox_inventory.destroy()
+  end
+  storage.players[event.player_index] = nil
+end)
+
+script.on_event(defines.events.on_gui_click, function(event)
+  Inbox.on_click(event)
+end)
 
 -- Receiving
 
@@ -20,15 +59,13 @@ script.on_nth_tick(10, function()
   helpers.recv_udp()
 end)
 
-local function import_from_buffer(player)
-  local payload = received_buffer[player.index]
+local function import_payload(payload, player)
   if payload then
     local success, err = pcall(function()
       player.cursor_stack.import_stack(payload)
+      -- This will make the item disappear if player dismisses it
+      player.cursor_stack_temporary = true
     end)
-
-    -- Clear buffered item
-    received_buffer[player.index] = nil
 
     if success then
       local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
@@ -48,8 +85,6 @@ script.on_event("blueprint-share-receive", function(event)
   if game.tick_paused then
     Log.debug("Game paused, manually checking UDP buffer.", player)
     helpers.recv_udp()
-  else
-    import_from_buffer(player)
   end
 end)
 
@@ -82,14 +117,14 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
   end
 
-  received_buffer[player.index] = decoded.payload
-
   -- Always import if triggered manually.
   -- Otherwise check auto-receive setting during polling.
   if auto_receive or is_manual_trigger then
     Log.debug("Received due to " .. (is_manual_trigger and "manual trigger" or "auto-receive setting"), player)
-    import_from_buffer(player)
+    import_payload(decoded.payload, player)
   end
+  Inbox.process_payload(decoded.payload, player)
+  Inbox.update(player)
 end)
 
 -- Sending
