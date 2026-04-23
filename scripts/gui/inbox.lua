@@ -114,7 +114,7 @@ function this.update(player)
     if item and item.valid_for_read then
       button.enabled = true
       button.sprite = "item/" .. item.name
-      title_label.caption = item.label or item.prototype.localised_name
+      title_label.caption = (item.label ~= "" and item.label) or item.prototype.localised_name
 
       if item.is_blueprint or item.is_blueprint_book then
         local desc = item.blueprint_description or ""

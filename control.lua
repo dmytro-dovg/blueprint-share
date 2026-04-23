@@ -58,15 +58,17 @@ script.on_nth_tick(10, function()
 end)
 
 local function import_payload(payload, player)
-  if payload then
+  if payload and player.cursor_stack and player.cursor_stack.valid then
     local result = player.cursor_stack.import_stack(payload)
-    if result == 0 then
+    if result >= 0 then
       -- This will make the item disappear if player dismisses it
       player.cursor_stack_temporary = true
-      local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
-      Log.info({"blueprint-share.blueprint-received", name}, player)
-    elseif result == -1 then
-      Log.warn({"blueprint-share.blueprint-received-with-warnings", name}, player)
+      local name = player.cursor_stack.valid_for_read and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
+      if result == 0 then
+        Log.info({"blueprint-share.blueprint-received", name}, player)
+      else
+        Log.warn({"blueprint-share.blueprint-received-with-warnings", name}, player)
+      end
     else
       Log.error({"blueprint-share.error-import-failed"}, player)
     end
