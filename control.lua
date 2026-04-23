@@ -4,14 +4,12 @@ local Config = require "scripts.config"
 local Util = require "scripts.util"
 local Inbox = require "scripts.gui.inbox"
 
-local INBOX_SIZE = 5
-
 -- Initialisation
 
 local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
   local player_storage = storage.players[player.index]
-  player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(INBOX_SIZE)
+  player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(Config.inbox_size)
 end
 
 script.on_init(function()
