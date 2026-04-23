@@ -17,17 +17,17 @@ local consts = {
       description = "description",
     },
     tag = {
-      slot = "slot",
+      slot = "blueprint-share_inbox_slot",
     },
   }
 }
 
-local function get_frame(player)
-  return player.gui.screen[consts.gui.frame]
-end
-
 function consts.gui.slot(index)
   return consts.gui.slot_prefix .. index
+end
+
+local function get_frame(player)
+  return player.gui.screen[consts.gui.frame]
 end
 
 local function build(player)
@@ -69,7 +69,7 @@ local function build(player)
       enabled = false,
       tags = { [consts.gui.tag.slot] = slot }
     }
-    localised_print(serpent.block(button.tags))
+
     local labels_flow = flow.add {
       type = "flow",
       direction = "vertical",
@@ -171,6 +171,8 @@ function this.on_click(event)
       if not inventory or not inventory.valid then return end
 
       local stack = inventory[slot]
+      if not stack then return end
+
       player.clear_cursor()
       player.cursor_stack.set_stack(stack)
       player.cursor_stack_temporary = true
