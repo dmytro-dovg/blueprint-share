@@ -179,7 +179,7 @@ function this.on_click(event)
   if not inventory or not inventory.valid then return end
 
   if event.button == defines.mouse_button_type.left then
-    player.clear_cursor()
+    if not player.is_cursor_empty() then return end
     player.cursor_stack.set_stack(inventory[slot])
     player.cursor_stack_temporary = true
   elseif event.button == defines.mouse_button_type.right then
