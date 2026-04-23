@@ -170,23 +170,20 @@ function this.on_click(event)
   if not player then return end
   
   local slot = event.element.tags[consts.gui.tag.slot]
-
   if not slot then return end
+
+  local player_storage = storage.players[player.index]
+  if not player_storage then return end
+
+  local inventory = player_storage.inbox_inventory
+  if not inventory or not inventory.valid then return end
+
   if event.button == defines.mouse_button_type.left then
-    local player_storage = storage.players[player.index]
-    if not player_storage then return end
-
-    local inventory = player_storage.inbox_inventory
-    if not inventory or not inventory.valid then return end
-
-    local stack = inventory[slot]
-    if not stack then return end
-
     player.clear_cursor()
-    player.cursor_stack.set_stack(stack)
+    player.cursor_stack.set_stack(inventory[slot])
     player.cursor_stack_temporary = true
   elseif event.button == defines.mouse_button_type.right then
-    storage.players[player.index].inbox_inventory[slot].clear()
+    inventory[slot].clear()
   end
   this.update(player)
 end
