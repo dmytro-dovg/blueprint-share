@@ -17,6 +17,10 @@ local valid_record_types = {
   ["upgrade-planner"] = true,
 }
 
+local function localised_item(item_name)
+  return "__ITEM__" ..  item_name .. "__"
+end
+
 function Util.valid_player(event)
   local player_index = event.player_index
 
@@ -45,7 +49,7 @@ function Util.export_cursor_data(player)
 
   -- Record from blueprint library
   if record and record.valid and valid_record_types[record.type] then
-    local record_name = {"item-name." .. record.type}
+    local record_name = localised_item(record.type)
     if not record.is_preview then
       return record.export_record(), record_name
     else
@@ -56,7 +60,7 @@ function Util.export_cursor_data(player)
 
   -- Stack from cursor
   if stack and stack.valid and stack.valid_for_read and valid_stack_types[stack.type] then
-    return stack.export_stack(), {"item-name." .. valid_stack_types[stack.type]}
+    return stack.export_stack(), localised_item(valid_stack_types[stack.type])
   end
 end
 
