@@ -7,7 +7,10 @@ local this = {}
 local consts = {
   gui = {
     inbox = {
-      frame = "blueprint-share-gui-inbox-frame",
+      frame = {
+        main = "blueprint-share-gui-inbox-frame-main",
+        content = "blueprint-share-gui-inbox-frame-content",
+      },
       button = {
         slot = "blueprint-share-gui-inbox-button-slot",
         close = "blueprint-share-gui-inbox-button-close",
@@ -15,7 +18,6 @@ local consts = {
       flow = {
         slot_prefix = "blueprint-share-gui-inbox-flow-slot_",
         titlebar = "blueprint-share-gui-inbox-flow-titlebar",
-        content = "blueprint-share-gui-inbox-flow-content",
         item_info = "blueprint-share-gui-inbox-flow-item_info",
       },
       label = {
@@ -34,7 +36,7 @@ function consts.gui.inbox.flow.slot(index)
 end
 
 local function get_frame(player)
-  return player.gui.screen[consts.gui.inbox.frame]
+  return player.gui.screen[consts.gui.inbox.frame.main]
 end
 
 local function build_tooltip(stack, title, description)
@@ -74,7 +76,7 @@ local function build_frame(player)
   if get_frame(player) then return end
   local frame = player.gui.screen.add{
     type = "frame",
-    name = consts.gui.inbox.frame,
+    name = consts.gui.inbox.frame.main,
     direction = "vertical",
   }
 
@@ -111,9 +113,10 @@ local function build_frame(player)
   }
 
   local content = frame.add {
-    type = "flow",
+    type = "frame",
+    style = "inside_shallow_frame",
     direction = "vertical",
-    name = consts.gui.inbox.flow.content,
+    name = consts.gui.inbox.frame.content,
   }
 
   local player_storage = storage.players[player.index]
@@ -134,11 +137,13 @@ local function build_frame(player)
       name = consts.gui.inbox.flow.slot(slot),
     }
     slot_content.style.vertical_align = "center"
+    slot_content.style.padding = 8
+    slot_content.style.height = 56
 
     local button = slot_content.add {
       type = "sprite-button",
       name = consts.gui.inbox.button.slot,
-      style = "slot_button",
+      style = "inventory_slot",
       enabled = false,
       tags = { [consts.gui.inbox.tag.slot] = slot },
     }
@@ -150,10 +155,12 @@ local function build_frame(player)
     }
     labels_flow.style.vertically_stretchable = true
     labels_flow.style.vertical_align = "center"
+    labels_flow.style.horizontal_align = "right"
 
     local title_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.title,
+      style = "caption_label",
       caption = {"blueprint-share.gui-empty"},
     }
     title_label.style.width = 150
@@ -193,7 +200,7 @@ function this.update(player)
 
   for slot = 1, #inventory do
     local item = inventory[slot]
-    local content = frame[consts.gui.inbox.flow.content][consts.gui.inbox.flow.slot(slot)]
+    local content = frame[consts.gui.inbox.frame.content][consts.gui.inbox.flow.slot(slot)]
     local button = content[consts.gui.inbox.button.slot]
     local item_info_flow = content[consts.gui.inbox.flow.item_info]
     local title_label = item_info_flow[consts.gui.inbox.label.title]
