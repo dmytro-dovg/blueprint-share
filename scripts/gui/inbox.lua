@@ -80,6 +80,11 @@ local function build_frame(player)
     direction = "vertical",
   }
 
+  local player_storage = storage.players[player.index]
+  if player_storage then
+    frame.location = player_storage.inbox_location or { 24, player.display_resolution.height / 2 }
+  end
+
   -- Titlebar
   local titlebar = frame.add {
     type = "flow",
@@ -119,7 +124,7 @@ local function build_frame(player)
     name = consts.gui.inbox.frame.content,
   }
 
-  local player_storage = storage.players[player.index]
+  -- Player storage is mandatory for next steps
   if not player_storage then return end
 
   local inventory = player_storage.inbox_inventory
@@ -269,6 +274,10 @@ local function show(player, should_show)
     build_frame(player)
     this.update(player)
   elseif not should_show and frame then
+    local player_storage = storage.players[player.index]
+    if player_storage then
+      player_storage.inbox_location = frame.location
+    end
     frame.destroy()
   end
 end
