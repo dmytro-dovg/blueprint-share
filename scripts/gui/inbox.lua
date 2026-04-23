@@ -82,7 +82,7 @@ local function build_frame(player)
 
   local player_storage = storage.players[player.index]
   if player_storage then
-    frame.location = player_storage.inbox_location or { 24, player.display_resolution.height / 2 }
+    frame.location = player_storage.inbox_location or { 24, player.display_resolution.height / 2 - 190 }
   end
 
   -- Titlebar
@@ -143,7 +143,7 @@ local function build_frame(player)
     }
     slot_content.style.vertical_align = "center"
     slot_content.style.padding = 8
-    slot_content.style.height = 56
+    slot_content.style.height = 54
 
     local button = slot_content.add {
       type = "sprite-button",
