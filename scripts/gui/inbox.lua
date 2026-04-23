@@ -38,27 +38,34 @@ local function get_frame(player)
 end
 
 local function build_tooltip(stack, title, description)
-  local tooltip = {""}
+  local sections = {}
 
   if title then
-    table.insert(tooltip, {"", "[font=default-bold]", title, "[/font]"})
+    table.insert(sections, {"", "[font=default-bold]", title, "[/font]"})
   end
-  table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
 
+  local icons_section = {""}
   local count = 0
-  local icons = stack.preview_icons
-  for _, icon in ipairs(icons) do
+  for _, icon in ipairs(stack.preview_icons or {}) do
     local signal = icon.signal
     if signal and signal.name then
       local signal_type = signal.type == "virtual" and "virtual-signal" or (signal.type or "item")
       count = count + 1
-      table.insert(tooltip, "[img=" .. signal_type .. "." .. signal.name .. "]" .. (count == 2 and "\n" or " "))
+      table.insert(icons_section, "[img=" .. signal_type .. "." .. signal.name .. "]" .. (count == 2 and "\n" or " "))
     end
   end
+  if count > 0 then table.insert(sections, icons_section) end
 
   if description and #description > 0 then
-    table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
-    table.insert(tooltip, description)
+    table.insert(sections, description)
+  end
+
+  local tooltip = {""}
+  for i, section in ipairs(sections) do
+    if i > 1 then
+      table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
+    end
+    table.insert(tooltip, section)
   end
   return tooltip
 end
