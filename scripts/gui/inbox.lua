@@ -171,6 +171,19 @@ local function build(player)
   return frame
 end
 
+local function compact(inventory)
+  local size = #inventory
+  local write = size
+  for read = size, 1, -1 do
+    if inventory[read].valid_for_read then
+      if read ~= write then
+        inventory[write].swap_stack(inventory[read])
+      end
+      write = write - 1
+    end
+  end
+end
+
 function this.update(player)
   local frame = get_frame(player) or build(player)
 
@@ -270,6 +283,7 @@ function this.on_click(event)
     player.cursor_stack_temporary = true
   elseif event.button == defines.mouse_button_type.right then
     inventory[slot].clear()
+    compact(inventory)
   end
   this.update(player)
 end
