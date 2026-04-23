@@ -146,18 +146,23 @@ function this.process_payload(payload, player)
   local size = #inventory
   if size == 0 then return end
 
+  -- Validate import in a temp inventory
+  local temp = game.create_inventory(1)
+  local result = temp[1].import_stack(payload)
+  if result == 1 then
+    Log.debug("Inbox: Import failed", player)
+    temp.destroy()
+    return
+  end
+
+  -- Import successfuly
   for slot = 1, size - 1 do
     inventory[slot].set_stack(inventory[slot + 1])
   end
 
-  local last = inventory[size]
-  last.clear()
-  local result = last.import_stack(payload)
-  if result == -1 then
-    -- Cleanup failed import
-      Log.debug("Inbox: Import failed", player)
-    last.clear()
-  end
+  inventory[size].clear()
+  inventory[size].set_stack(temp[1])
+  temp.destroy()
 end
 
 function this.on_click(event)

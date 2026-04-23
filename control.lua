@@ -59,17 +59,15 @@ end)
 
 local function import_payload(payload, player)
   if payload then
-    local success, err = pcall(function()
-      player.cursor_stack.import_stack(payload)
+    local result = player.cursor_stack.import_stack(payload)
+    if result == 0 then
       -- This will make the item disappear if player dismisses it
       player.cursor_stack_temporary = true
-    end)
-
-    if success then
       local name = (player.cursor_stack and player.cursor_stack.valid_for_read) and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
       Log.info({"blueprint-share.blueprint-received", name}, player)
+    elseif result == -1 then
+      Log.warn({"blueprint-share.blueprint-received-with-warnings", name}, player)
     else
-      Log.debug("Import failed: " .. tostring(err), player)
       Log.error({"blueprint-share.error-import-failed"}, player)
     end
   end
