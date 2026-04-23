@@ -160,7 +160,6 @@ local function build_frame(player)
     }
     labels_flow.style.vertically_stretchable = true
     labels_flow.style.vertical_align = "center"
-    labels_flow.style.horizontal_align = "right"
 
     local title_label = labels_flow.add { 
       type = "label",
