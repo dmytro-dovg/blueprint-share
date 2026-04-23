@@ -10,7 +10,14 @@ local receive_input = {
   key_sequence = "CONTROL + R",
 }
 
+local toggle_inbox_input = {
+  type = "custom-input",
+  name = "blueprint-share-toggle-inbox",
+  key_sequence = "CONTROL + SHIFT + B",
+}
+
 data:extend({
   send_input,
   receive_input,
+  toggle_inbox_input,
 })

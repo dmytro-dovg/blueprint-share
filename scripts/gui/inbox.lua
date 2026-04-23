@@ -70,10 +70,8 @@ local function build_tooltip(stack, title, description)
   return tooltip
 end
 
-local function build(player)
-  if get_frame(player) then
-    get_frame(player).destroy()
-  end
+local function build_frame(player)
+  if get_frame(player) then return end
   local frame = player.gui.screen.add{
     type = "frame",
     name = consts.gui.inbox.frame,
@@ -185,7 +183,7 @@ local function compact(inventory)
 end
 
 function this.update(player)
-  local frame = get_frame(player) or build(player)
+  local frame = get_frame(player) or build_frame(player)
 
   local player_storage = storage.players[player.index]
   if not player_storage then return end
@@ -258,13 +256,28 @@ function this.process_payload(payload, player)
   temp.destroy()
 end
 
+local function show(player, should_show)
+  local frame = get_frame(player)
+  if should_show and not frame then
+    build_frame(player)
+    this.update(player)
+  elseif not should_show and frame then
+    frame.destroy()
+  end
+end
+
+function this.toggle(event)
+  local player = Util.valid_player(event)
+  if not player then return end
+  show(player, not get_frame(player))
+end
+
 function this.on_click(event)
   local player = Util.valid_player(event)
   if not player then return end
 
   if event.element.name == consts.gui.inbox.button.close then
-    local frame = get_frame(player)
-    if frame then frame.destroy() end
+    show(player, false)
     return
   end
 
