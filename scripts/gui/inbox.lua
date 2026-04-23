@@ -37,6 +37,31 @@ local function get_frame(player)
   return player.gui.screen[consts.gui.inbox.frame]
 end
 
+local function build_tooltip(stack, title, description)
+  local tooltip = {""}
+
+  if title then
+    if type(title) == "string" then
+      table.insert(tooltip, "[font=default-bold]" .. title .. "[/font]")
+    else
+      table.insert(tooltip, {"", "[font=default-bold]", title, "[/font]"})
+    end
+  end
+  table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
+
+  local icons = stack.preview_icons
+  if icons then
+    for _, icon in pairs(icons) do
+      local signal = icon.signal
+      if signal and signal.name then
+        local type = signal.type == "virtual" and "virtual-signal" or signal.type
+        table.insert(tooltip, "[img=" .. (type or "item") .. "." .. signal.name .. "] " .. (icon.index == 2 and "\n" or ""))
+      end
+    end
+  end
+  return tooltip
+end
+
 local function build(player)
   if get_frame(player) then
     get_frame(player).destroy()
@@ -109,7 +134,7 @@ local function build(player)
       name = consts.gui.inbox.button.slot,
       style = "slot_button",
       enabled = false,
-      tags = { [consts.gui.inbox.tag.slot] = slot }
+      tags = { [consts.gui.inbox.tag.slot] = slot },
     }
 
     local labels_flow = slot_content.add {
@@ -158,16 +183,22 @@ function this.update(player)
     if item and item.valid_for_read then
       button.enabled = true
       button.sprite = "item/" .. item.name
-      title_label.caption = (item.label ~= "" and item.label) or item.prototype.localised_name
+      local title = (item.label ~= "" and item.label) or item.prototype.localised_name
+      title_label.caption = title
+
+      local tooltip = build_tooltip(item, title)
 
       if item.is_blueprint or item.is_blueprint_book then
         local desc = item.blueprint_description or ""
         description_label.caption = desc
         description_label.visible = #desc > 0
+        table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
+        table.insert(tooltip, desc)
       else
         description_label.caption = ""
         description_label.visible = false
       end
+      button.tooltip = tooltip
     else
       button.enabled = false
       button.sprite = nil
