@@ -42,6 +42,10 @@ script.on_event(defines.events.on_gui_click, function(event)
   Inbox.on_click(event)
 end)
 
+script.on_event(defines.events.on_gui_closed, function(event)
+  Inbox.on_closed(event)
+end)
+
 -- Receiving
 
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)
