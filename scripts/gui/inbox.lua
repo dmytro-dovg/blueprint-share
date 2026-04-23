@@ -41,23 +41,24 @@ local function build_tooltip(stack, title, description)
   local tooltip = {""}
 
   if title then
-    if type(title) == "string" then
-      table.insert(tooltip, "[font=default-bold]" .. title .. "[/font]")
-    else
-      table.insert(tooltip, {"", "[font=default-bold]", title, "[/font]"})
-    end
+    table.insert(tooltip, {"", "[font=default-bold]", title, "[/font]"})
   end
   table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
 
+  local count = 0
   local icons = stack.preview_icons
-  if icons then
-    for _, icon in pairs(icons) do
-      local signal = icon.signal
-      if signal and signal.name then
-        local type = signal.type == "virtual" and "virtual-signal" or signal.type
-        table.insert(tooltip, "[img=" .. (type or "item") .. "." .. signal.name .. "] " .. (icon.index == 2 and "\n" or ""))
-      end
+  for _, icon in ipairs(icons) do
+    local signal = icon.signal
+    if signal and signal.name then
+      local signal_type = signal.type == "virtual" and "virtual-signal" or (signal.type or "item")
+      count = count + 1
+      table.insert(tooltip, "[img=" .. signal_type .. "." .. signal.name .. "]" .. (count == 2 and "\n" or " "))
     end
+  end
+
+  if description and #description > 0 then
+    table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
+    table.insert(tooltip, description)
   end
   return tooltip
 end
@@ -186,19 +187,16 @@ function this.update(player)
       local title = (item.label ~= "" and item.label) or item.prototype.localised_name
       title_label.caption = title
 
-      local tooltip = build_tooltip(item, title)
-
+      local desc
       if item.is_blueprint or item.is_blueprint_book then
-        local desc = item.blueprint_description or ""
+        desc = item.blueprint_description or ""
         description_label.caption = desc
         description_label.visible = #desc > 0
-        table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
-        table.insert(tooltip, desc)
       else
         description_label.caption = ""
         description_label.visible = false
       end
-      button.tooltip = tooltip
+      button.tooltip = build_tooltip(item, title, desc)
     else
       button.enabled = false
       button.sprite = nil
