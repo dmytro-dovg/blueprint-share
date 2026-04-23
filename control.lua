@@ -64,7 +64,7 @@ end)
 local function import_payload(payload, player)
   if payload and player.cursor_stack and player.cursor_stack.valid then
     local result = player.cursor_stack.import_stack(payload)
-    if result >= 0 then
+    if result <= 0 then
       -- This will make the item disappear if player dismisses it
       player.cursor_stack_temporary = true
       local name = player.cursor_stack.valid_for_read and player.cursor_stack.prototype.localised_name or {"blueprint-share.unknown-item"}
