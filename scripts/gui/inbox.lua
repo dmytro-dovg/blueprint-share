@@ -41,16 +41,13 @@ local function build(player)
     caption = {"blueprint-share.gui-inbox-title"},
   }
 
-  --  +-flow--------------------------------+
-  --  |+-button-+ +-labels-flow-----------+ |
-  --  ||        | | [label-name]          | |
-  --  ||        | |                       | |
-  --  ||        | | [label-description]   | |
-  --  |+--------+ +-----------------------+ |
-  --  +-------------------------------------+
-
   local player_storage = storage.players[player.index]
-  for slot = 1,#player_storage.inbox_inventory,1 do
+  if not player_storage then return end
+
+  local inventory = player_storage.inbox_inventory
+  if not inventory or not inventory.valid then return end
+
+  for slot = 1, #inventory do
     if slot > 1 then
       frame.add {
         type = "line",
@@ -99,16 +96,22 @@ end
 
 function this.update(player)
   local frame = get_frame(player) or build(player)
+
   local player_storage = storage.players[player.index]
-  for slot = 1, #player_storage.inbox_inventory do
-    local item = player_storage.inbox_inventory[slot]
+  if not player_storage then return end
+
+  local inventory = player_storage.inbox_inventory
+  if not inventory or not inventory.valid then return end
+
+  for slot = 1, #inventory do
+    local item = inventory[slot]
     local container = frame[consts.gui.slot(slot)]
     local button = container[consts.gui.button]
     local item_info_flow = container[consts.gui.flow.item_info]
     local title_label = item_info_flow[consts.gui.label.title]
     local description_label = item_info_flow[consts.gui.label.description]
 
-    if item.valid_for_read then
+    if item and item.valid_for_read then
       button.enabled = true
       button.sprite = "item/" .. item.name
       title_label.caption = item.label or item.prototype.localised_name
@@ -152,6 +155,7 @@ function this.process_payload(payload, player)
   local result = last.import_stack(payload)
   if result == -1 then
     -- Cleanup failed import
+      Log.debug("Inbox: Import failed", player)
     last.clear()
   end
 end
