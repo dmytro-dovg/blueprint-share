@@ -34,8 +34,18 @@ function this.set_icons(container, item_type, icons)
   if not grid then return end
 
   grid.clear()
+
   icons = icons or {}
-  local icon_size = #icons == 1 and { 24, 24 } or (item_type == "blueprint-book" and { 10, 10 } or { 14, 14 })
+
+  local icon_size
+  if #icons == 1 then
+    icon_size = { 24, 24 }
+  elseif item_type == "blueprint-book" then
+    icon_size = { 10, 10 }
+  else
+    icon_size = { 14, 14 }
+  end
+
   for _, icon in ipairs(icons) do
     local signal = icon.signal
     if signal and signal.name then
@@ -50,7 +60,7 @@ function this.set_icons(container, item_type, icons)
   end
 end
 
-function this.build(parent, name, item_type, icons)
+function this.build(parent, name, item_type)
   local sprite = consts.gui.inbox_slot.sprites[item_type]
 
   local container = parent.add{

@@ -146,7 +146,7 @@ local function build_frame(player)
     slot_content.style.padding = 8
     slot_content.style.height = 54
 
-    local slot_container = InboxSlot.build(slot_content, consts.gui.inbox.button.slot, nil, {})
+    local slot_container = InboxSlot.build(slot_content, consts.gui.inbox.button.slot, nil)
     InboxSlot.set_tags(slot_container, { [consts.gui.inbox.tag.slot] = slot })
 
     local labels_flow = slot_content.add {
