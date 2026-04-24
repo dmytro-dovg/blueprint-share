@@ -1,6 +1,7 @@
 
 local Log = require "scripts.log"
 local Util = require "scripts.util"
+local InboxSlot = require "scripts.gui.inbox_slot"
 
 local this = {}
 
@@ -145,13 +146,8 @@ local function build_frame(player)
     slot_content.style.padding = 8
     slot_content.style.height = 54
 
-    local button = slot_content.add {
-      type = "sprite-button",
-      name = consts.gui.inbox.button.slot,
-      style = "inventory_slot",
-      enabled = false,
-      tags = { [consts.gui.inbox.tag.slot] = slot },
-    }
+    local slot_container = InboxSlot.build(slot_content, consts.gui.inbox.button.slot, nil, {})
+    InboxSlot.set_tags(slot_container, { [consts.gui.inbox.tag.slot] = slot })
 
     local labels_flow = slot_content.add {
       type = "flow",
@@ -167,14 +163,14 @@ local function build_frame(player)
       style = "caption_label",
       caption = {"blueprint-share.gui-empty"},
     }
-    title_label.style.width = 150
+    title_label.style.width = 200
     title_label.style.single_line = true
 
     local description_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.description,
     }
-    description_label.style.width = 150
+    description_label.style.width = 200
     description_label.style.single_line = true
   end
   return frame
@@ -205,14 +201,16 @@ function this.update(player)
   for slot = 1, #inventory do
     local item = inventory[slot]
     local content = frame[consts.gui.inbox.frame.content][consts.gui.inbox.flow.slot(slot)]
-    local button = content[consts.gui.inbox.button.slot]
+    local slot_container = content[consts.gui.inbox.button.slot]
     local item_info_flow = content[consts.gui.inbox.flow.item_info]
     local title_label = item_info_flow[consts.gui.inbox.label.title]
     local description_label = item_info_flow[consts.gui.inbox.label.description]
 
     if item and item.valid_for_read then
-      button.enabled = true
-      button.sprite = "item/" .. item.name
+      InboxSlot.set_enabled(slot_container, true)
+      InboxSlot.set_type(slot_container, item.name)
+      InboxSlot.set_icons(slot_container, item.name, item.preview_icons)
+
       local title = (item.label ~= "" and item.label) or item.prototype.localised_name
       title_label.caption = title
 
@@ -225,10 +223,12 @@ function this.update(player)
         description_label.caption = ""
         description_label.visible = false
       end
-      button.tooltip = build_tooltip(item, title, desc)
+      InboxSlot.set_tooltip(slot_container, build_tooltip(item, title, desc))
     else
-      button.enabled = false
-      button.sprite = nil
+      InboxSlot.set_enabled(slot_container, false)
+      InboxSlot.set_type(slot_container)
+      InboxSlot.set_icons(slot_container, nil, nil)
+      InboxSlot.set_tooltip(slot_container, nil)
       title_label.caption = {"blueprint-share.gui-empty"}
       description_label.caption = ""
       description_label.visible = false
