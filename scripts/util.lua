@@ -121,6 +121,9 @@ function Util.tooltip(title, description, icons)
 end
 
 function Util.deconstruction_item_icons(stack)
+  if stack.preview_icons and #stack.preview_icons > 0 then
+    return stack.preview_icons
+  end
   local icons = {}
   local function add_icon(icon_type, name)
     if not name then return end
@@ -158,6 +161,9 @@ function Util.deconstruction_item_icons(stack)
 end
 
 function Util.upgrade_item_icons(stack)
+  if stack.preview_icons and #stack.preview_icons > 0 then
+    return stack.preview_icons
+  end
   local seen, icons = {}, {}
   for i = 1, stack.mapper_count do
     local to = stack.get_mapper(i, "to")
