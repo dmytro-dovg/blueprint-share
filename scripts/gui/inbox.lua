@@ -156,6 +156,8 @@ local function compact(inventory)
   end
 end
 
+-- Public
+
 function this.update(player)
   local frame = get_frame(player) or build_frame(player)
 
@@ -241,7 +243,7 @@ function this.process_payload(payload, player)
   temp.destroy()
 end
 
-local function show(player, should_show)
+function this.show(player, should_show)
   local frame = get_frame(player)
   if should_show and not frame then
     build_frame(player)
@@ -258,7 +260,36 @@ end
 function this.toggle(event)
   local player = Util.valid_player(event)
   if not player then return end
-  show(player, not get_frame(player))
+  this.show(player, not get_frame(player))
+end
+
+function this.resize(player, new_capacity)
+  local player_storage = storage.players[player.index]
+  if not player_storage then return end
+
+  local inventory = player_storage.inbox_inventory
+  if not (inventory and inventory.valid) then return end
+
+  local old_capacity = #inventory
+  local delta = new_capacity - old_capacity
+
+  if delta > 0 then
+    -- Pre-resize first to make extra slots available for the shift
+    inventory.resize(new_capacity)
+    for i = new_capacity, 1, -1 do
+      if i > delta then
+        inventory[i].set_stack(inventory[i - delta])
+      else
+        inventory[i].clear()
+      end
+    end
+  elseif delta < 0 then
+    for i = 1, new_capacity do
+      inventory[i].set_stack(inventory[i - delta])
+    end
+    -- Post-resize to truncate remaining duplicate slots slots
+    inventory.resize(new_capacity)
+  end
 end
 
 function this.on_click(event)
@@ -266,7 +297,7 @@ function this.on_click(event)
   if not player then return end
 
   if event.element.name == consts.gui.inbox.button.close then
-    show(player, false)
+    this.show(player, false)
     return
   end
 
