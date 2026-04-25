@@ -232,8 +232,10 @@ function this.update(player)
         desc = stack.blueprint_description or ""
       elseif stack.type == "upgrade-item" then
         icons = Util.upgrade_item_icons(stack)
+        -- desc = Util.planner_description(stack)
       elseif stack.type == "deconstruction-item" then
         icons = Util.deconstruction_item_icons(stack)
+        -- desc = Util.planner_description(stack)
       end
 
       description_label.caption = desc

@@ -185,4 +185,23 @@ function Util.upgrade_item_icons(stack)
   return icons
 end
 
+-- Decodes the export string to read the description, since the Lua API
+-- does not expose it for these planner types. This can be computationally
+-- heavy for all item slots.
+function Util.planner_description(stack)
+  if not (stack.type == "upgrade-item" or stack.type == "deconstruction-item") then
+    return ""
+  end
+  local raw = stack.export_stack()
+  if not raw or raw == "" then return "" end
+
+  -- Drop first format version byte
+  local decoded = helpers.decode_string(raw:sub(2))
+  if not decoded then return "" end
+
+  local data = helpers.json_to_table(decoded)
+  local wrapper = data and (data.upgrade_planner or data.deconstruction_planner)
+  return wrapper and wrapper.settings and wrapper.settings.description or ""
+end
+
 return Util
