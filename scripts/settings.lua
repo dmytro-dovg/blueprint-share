@@ -18,8 +18,8 @@ function Settings.destination_port(player)
   return get(player, "destination-port")
 end
 
-function Settings.inbox_size(player)
-  return get(player, "inbox-size")
+function Settings.inbox_capacity(player)
+  return get(player, "inbox-capacity")
 end
 
 return Settings

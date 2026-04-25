@@ -9,7 +9,7 @@ local Inbox = require "scripts.gui.inbox"
 local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
   local player_storage = storage.players[player.index]
-  player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(Config.inbox_size)
+  player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(Settings.inbox_capacity(player))
 end
 
 script.on_init(function()

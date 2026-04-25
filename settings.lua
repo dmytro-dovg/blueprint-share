@@ -22,9 +22,9 @@ local auto_receive = {
   default_value = true,
 }
 
-local inbox_size = {
+local inbox_capacity = {
   type = "int-setting",
-  name = "blueprint-share-inbox-size",
+  name = "blueprint-share-inbox-capacity",
   setting_type = "runtime-per-user",
   default_value = 5,
   minimum_value = 1,
@@ -35,5 +35,5 @@ data:extend({
   auto_receive,
   destination_port,
   log_level,
-  inbox_size,
+  inbox_capacity,
 })
