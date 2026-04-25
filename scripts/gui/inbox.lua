@@ -125,6 +125,7 @@ local function build_frame(player)
     style = "frame_action_button",
     sprite = "utility/close",
     clicked_sprite = "utility/close_black",
+    tooltip = {"blueprint-share.gui-inbox-button-close-tooltip"},
   }
 
   local content = frame.add {
