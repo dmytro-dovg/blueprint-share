@@ -1,3 +1,5 @@
+local Util = require "scripts.util"
+
 local this = {}
 
 local consts = {
@@ -23,7 +25,7 @@ local consts = {
 }
 
 local function get_button(container)
-    return container[consts.gui.inbox_slot.button.slot]
+  return container[consts.gui.inbox_slot.button.slot]
 end
 
 function this.set_icons(container, item_type, icons)
@@ -36,23 +38,25 @@ function this.set_icons(container, item_type, icons)
   grid.clear()
 
   icons = icons or {}
-
   local icon_size
-  if #icons == 1 then
-    icon_size = { 24, 24 }
-  elseif item_type == "blueprint-book" then
-    icon_size = { 10, 10 }
+  if item_type == "blueprint-book" then
+    icon_size = #icons == 1 and { 14, 14 } or { 10, 10 }
   else
-    icon_size = { 14, 14 }
+    icon_size = #icons == 1 and { 24, 24 } or { 14, 14 }
   end
 
   for _, icon in ipairs(icons) do
-    local signal = icon.signal
-    if signal and signal.name then
-      local signal_type = signal.type == "virtual" and "virtual-signal" or (signal.type or "item")
+    local sprite_path
+    if icon.sprite then
+      sprite_path = icon.sprite
+    elseif icon.signal and icon.signal.name then
+      sprite_path = Util.signal_sprite_path(icon.signal)
+    end
+
+    if sprite_path then
       local icon_sprite = grid.add{
         type = "sprite",
-        sprite = signal_type .. "/" .. signal.name,
+        sprite = sprite_path,
       }
       icon_sprite.style.size = icon_size
       icon_sprite.style.stretch_image_to_widget_size = true

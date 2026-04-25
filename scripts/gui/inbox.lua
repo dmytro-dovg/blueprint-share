@@ -40,39 +40,6 @@ local function get_frame(player)
   return player.gui.screen[consts.gui.inbox.frame.main]
 end
 
-local function build_tooltip(stack, title, description)
-  local sections = {}
-
-  if title then
-    table.insert(sections, {"", "[font=default-bold]", title, "[/font]"})
-  end
-
-  local icons_section = {""}
-  local count = 0
-  for _, icon in ipairs(stack.preview_icons or {}) do
-    local signal = icon.signal
-    if signal and signal.name then
-      local signal_type = signal.type == "virtual" and "virtual-signal" or (signal.type or "item")
-      count = count + 1
-      table.insert(icons_section, "[img=" .. signal_type .. "." .. signal.name .. "]" .. (count == 2 and "\n" or " "))
-    end
-  end
-  if count > 0 then table.insert(sections, icons_section) end
-
-  if description and #description > 0 then
-    table.insert(sections, description)
-  end
-
-  local tooltip = {""}
-  for i, section in ipairs(sections) do
-    if i > 1 then
-      table.insert(tooltip, "\n[color=gray]────────────────[/color]\n")
-    end
-    table.insert(tooltip, section)
-  end
-  return tooltip
-end
-
 local function build_frame(player)
   if get_frame(player) then return end
   local frame = player.gui.screen.add{
@@ -199,31 +166,38 @@ function this.update(player)
   if not inventory or not inventory.valid then return end
 
   for slot = 1, #inventory do
-    local item = inventory[slot]
+    local stack = inventory[slot]
     local content = frame[consts.gui.inbox.frame.content][consts.gui.inbox.flow.slot(slot)]
     local slot_container = content[consts.gui.inbox.button.slot]
     local item_info_flow = content[consts.gui.inbox.flow.item_info]
     local title_label = item_info_flow[consts.gui.inbox.label.title]
     local description_label = item_info_flow[consts.gui.inbox.label.description]
 
-    if item and item.valid_for_read then
+    if stack and stack.valid_for_read then
       InboxSlot.set_enabled(slot_container, true)
-      InboxSlot.set_type(slot_container, item.name)
-      InboxSlot.set_icons(slot_container, item.name, item.preview_icons)
+      InboxSlot.set_type(slot_container, stack.name)
 
-      local title = (item.label ~= "" and item.label) or item.prototype.localised_name
+      local title = (stack.label ~= "" and stack.label) or stack.prototype.localised_name
       title_label.caption = title
 
-      local desc
-      if item.is_blueprint or item.is_blueprint_book then
-        desc = item.blueprint_description or ""
-        description_label.caption = desc
-        description_label.visible = #desc > 0
-      else
-        description_label.caption = ""
-        description_label.visible = false
+      local desc = ""
+      local icons = nil
+      if stack.is_blueprint then
+        icons = stack.preview_icons
+        desc = stack.blueprint_description or ""
+      elseif stack.is_blueprint_book then
+        icons = Util.active_book_stack(stack).preview_icons
+        desc = stack.blueprint_description or ""
+      elseif stack.type == "upgrade-item" then
+        icons = Util.upgrade_item_icons(stack)
+      elseif stack.type == "deconstruction-item" then
+        icons = Util.deconstruction_item_icons(stack)
       end
-      InboxSlot.set_tooltip(slot_container, build_tooltip(item, title, desc))
+
+      description_label.caption = desc
+      description_label.visible = #desc > 0
+      InboxSlot.set_icons(slot_container, stack.name, icons)
+      InboxSlot.set_tooltip(slot_container, Util.tooltip(title, desc, icons))
     else
       InboxSlot.set_enabled(slot_container, false)
       InboxSlot.set_type(slot_container)
