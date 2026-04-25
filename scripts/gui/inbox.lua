@@ -287,7 +287,7 @@ function this.resize(player, new_capacity)
     for i = 1, new_capacity do
       inventory[i].set_stack(inventory[i - delta])
     end
-    -- Post-resize to truncate remaining duplicate slots slots
+    -- Post-resize to truncate remaining duplicate slots
     inventory.resize(new_capacity)
   end
 end
