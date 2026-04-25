@@ -38,7 +38,7 @@ end
 
 local sizes = {
   frame = {
-    max_width = 240,
+    width = 240,
   },
   titlebar = {
     height = 28,
@@ -78,7 +78,7 @@ local function build_frame(player)
     name = consts.gui.inbox.frame.main,
     direction = "vertical",
   }
-  frame.style.width = sizes.frame.max_width
+  frame.style.width = sizes.frame.width
 
   local player_storage = storage.players[player.index]
   if player_storage then
