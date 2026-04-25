@@ -243,7 +243,7 @@ function this.process_payload(payload, player)
   temp.destroy()
 end
 
-function this.show(player, should_show)
+local function show(player, should_show)
   local frame = get_frame(player)
   if should_show and not frame then
     build_frame(player)
@@ -260,7 +260,7 @@ end
 function this.toggle(event)
   local player = Util.valid_player(event)
   if not player then return end
-  this.show(player, not get_frame(player))
+  show(player, not get_frame(player))
 end
 
 function this.resize(player, new_capacity)
@@ -292,12 +292,18 @@ function this.resize(player, new_capacity)
   end
 end
 
+function this.refresh(player)
+  if not get_frame(player) then return end
+  show(player, false)
+  show(player, true)
+end
+
 function this.on_click(event)
   local player = Util.valid_player(event)
   if not player then return end
 
   if event.element.name == consts.gui.inbox.button.close then
-    this.show(player, false)
+    show(player, false)
     return
   end
 

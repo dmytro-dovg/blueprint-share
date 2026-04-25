@@ -42,8 +42,8 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
   if event.setting == "blueprint-share-inbox-capacity" and event.setting_type == "runtime-per-user" then
     local player = Util.valid_player(event)
     if not player then return end
-    Inbox.show(player, false)
     Inbox.resize(player, Settings.inbox_capacity(player))
+    Inbox.refresh(player)
   end
 end)
 
