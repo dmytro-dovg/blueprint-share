@@ -257,6 +257,12 @@ local function show(player, should_show)
   end
 end
 
+local function refresh(player)
+  if not get_frame(player) then return end
+  show(player, false)
+  show(player, true)
+end
+
 function this.toggle(event)
   local player = Util.valid_player(event)
   if not player then return end
@@ -272,6 +278,7 @@ function this.resize(player, new_capacity)
 
   local old_capacity = #inventory
   local delta = new_capacity - old_capacity
+  if delta == 0 then return end
 
   if delta > 0 then
     -- Pre-resize first to make extra slots available for the shift
@@ -290,12 +297,8 @@ function this.resize(player, new_capacity)
     -- Post-resize to truncate remaining duplicate slots
     inventory.resize(new_capacity)
   end
-end
 
-function this.refresh(player)
-  if not get_frame(player) then return end
-  show(player, false)
-  show(player, true)
+  refresh(player)
 end
 
 function this.on_click(event)

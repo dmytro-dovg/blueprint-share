@@ -43,7 +43,6 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
     local player = Util.valid_player(event)
     if not player then return end
     Inbox.resize(player, Settings.inbox_capacity(player))
-    Inbox.refresh(player)
   end
 end)
 
