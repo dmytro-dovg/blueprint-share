@@ -36,8 +36,34 @@ function consts.gui.inbox.flow.slot(index)
   return consts.gui.inbox.flow.slot_prefix .. index
 end
 
+local sizes = {
+  frame = {
+    max_width = 240,
+  },
+  titlebar = {
+    height = 28,
+    filler_height = 24,
+    filler_right_margin = 4,
+  },
+  content = {
+    padding = 8,
+  },
+  slot = {
+    height = 50,
+    padding = 8,
+    separator = 4,
+  },
+}
+
 local function get_frame(player)
   return player.gui.screen[consts.gui.inbox.frame.main]
+end
+
+local function estimated_frame_height(slot_count)
+  return sizes.titlebar.height
+       + sizes.content.padding * 2
+       + slot_count * sizes.slot.height
+       + math.max(0, slot_count - 1) * sizes.slot.separator
 end
 
 local function build_frame(player)
@@ -47,10 +73,18 @@ local function build_frame(player)
     name = consts.gui.inbox.frame.main,
     direction = "vertical",
   }
+  frame.style.maximal_width = sizes.frame.max_width
 
   local player_storage = storage.players[player.index]
   if player_storage then
-    frame.location = player_storage.inbox_location or { 24, player.display_resolution.height / 2 - 190 }
+    local inventory = player_storage.inbox_inventory
+    local slot_count = 0
+    if inventory and inventory.valid then
+      slot_count = #inventory
+    end
+    local frame_height = estimated_frame_height(slot_count) * player.display_scale
+    local default_y = math.floor((player.display_resolution.height - frame_height) / 2)
+    frame.location = player_storage.inbox_location or { 24, default_y }
   end
 
   -- Titlebar
@@ -73,8 +107,8 @@ local function build_frame(player)
     ignored_by_interaction = true,
   }
   filler.style.horizontally_stretchable = true
-  filler.style.height = 24
-  filler.style.right_margin = 4
+  filler.style.height = sizes.titlebar.filler_height
+  filler.style.right_margin = sizes.titlebar.filler_right_margin
 
   -- Close button
   titlebar.add {
@@ -110,8 +144,8 @@ local function build_frame(player)
       name = consts.gui.inbox.flow.slot(slot),
     }
     slot_content.style.vertical_align = "center"
-    slot_content.style.padding = 8
-    slot_content.style.height = 54
+    slot_content.style.padding = sizes.slot.padding
+    slot_content.style.height = sizes.slot.height
 
     local slot_container = InboxSlot.build(slot_content, consts.gui.inbox.button.slot, nil)
     InboxSlot.set_tags(slot_container, { [consts.gui.inbox.tag.slot] = slot })
@@ -130,15 +164,15 @@ local function build_frame(player)
       style = "caption_label",
       caption = {"blueprint-share.gui-empty"},
     }
-    title_label.style.width = 200
     title_label.style.single_line = true
+    title_label.style.horizontally_squashable = true
 
     local description_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.description,
     }
-    description_label.style.width = 200
     description_label.style.single_line = true
+    description_label.style.horizontally_squashable = true
   end
   return frame
 end
