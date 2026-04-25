@@ -1,7 +1,17 @@
+
+---------------------------------------------------------------------------------------------------
+Version: 0.x.x
+  Date: 2026-xx-xx
+    Features:
+      - Added an inbox window with history of received blueprints, books, deconstruction and upgrade planners. Toggle with Ctrl + Shift + B.
+      - Added an inbox capacity setting (per-player, 1–16 slots, default 5).
+    Bugfixes:
+      - Fixed an import-result check that could misreport a successful receive.
+      - Fixed locale inconsistencies in English and Ukrainian.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2026-04-22
-  Bugfixed:
+  Bugfixes:
     - Fixed blueprint being received multiple times when connected to a server.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
