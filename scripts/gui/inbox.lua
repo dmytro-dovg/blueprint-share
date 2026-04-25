@@ -55,6 +55,11 @@ local sizes = {
   },
 }
 
+local styles = {
+  empty_description = "blueprint_share_description_empty",
+  description = "blueprint_share_description",
+}
+
 local function get_frame(player)
   return player.gui.screen[consts.gui.inbox.frame.main]
 end
@@ -73,7 +78,7 @@ local function build_frame(player)
     name = consts.gui.inbox.frame.main,
     direction = "vertical",
   }
-  frame.style.maximal_width = sizes.frame.max_width
+  frame.style.width = sizes.frame.max_width
 
   local player_storage = storage.players[player.index]
   if player_storage then
@@ -170,9 +175,8 @@ local function build_frame(player)
     local description_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.description,
+      style = styles.description_empty,
     }
-    description_label.style.single_line = true
-    description_label.style.horizontally_squashable = true
   end
   return frame
 end
@@ -215,6 +219,7 @@ function this.update(player)
 
       local title = (stack.label ~= "" and stack.label) or stack.prototype.localised_name
       title_label.caption = title
+      title_label.visible = true
 
       local desc = ""
       local icons = nil
@@ -232,6 +237,7 @@ function this.update(player)
 
       description_label.caption = desc
       description_label.visible = #desc > 0
+      description_label.style = styles.description
       InboxSlot.set_icons(slot_container, stack.name, icons)
       InboxSlot.set_tooltip(slot_container, Util.tooltip(title, desc, icons))
     else
@@ -239,9 +245,11 @@ function this.update(player)
       InboxSlot.set_type(slot_container)
       InboxSlot.set_icons(slot_container, nil, nil)
       InboxSlot.set_tooltip(slot_container, nil)
-      title_label.caption = {"blueprint-share.gui-empty"}
-      description_label.caption = ""
-      description_label.visible = false
+      title_label.caption = ""
+      title_label.visible = false
+      description_label.caption = {"blueprint-share.gui-empty"}
+      description_label.visible = true
+      description_label.style = styles.empty_description
     end
   end
 end

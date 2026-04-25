@@ -1,3 +1,5 @@
+require "styles"
+
 local send_input = {
   type = "custom-input",
   name = "blueprint-share-send",
