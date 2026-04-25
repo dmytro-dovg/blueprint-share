@@ -56,8 +56,11 @@ local sizes = {
 }
 
 local styles = {
-  empty_description = "blueprint_share_description_empty",
-  description = "blueprint_share_description",
+  label = {
+    title = "blueprint_share_title",
+    empty_description = "blueprint_share_description_empty",
+    description = "blueprint_share_description",
+  },
 }
 
 local function get_frame(player)
@@ -166,16 +169,13 @@ local function build_frame(player)
     local title_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.title,
-      style = "caption_label",
+      style = styles.label.title,
       caption = {"blueprint-share.gui-empty"},
     }
-    title_label.style.single_line = true
-    title_label.style.horizontally_squashable = true
 
     local description_label = labels_flow.add { 
       type = "label",
       name = consts.gui.inbox.label.description,
-      style = styles.description_empty,
     }
   end
   return frame
@@ -222,7 +222,7 @@ function this.update(player)
       title_label.visible = true
 
       local desc = ""
-      local icons = nil
+      local icons
       if stack.is_blueprint then
         icons = stack.preview_icons
         desc = stack.blueprint_description or ""
@@ -237,7 +237,7 @@ function this.update(player)
 
       description_label.caption = desc
       description_label.visible = #desc > 0
-      description_label.style = styles.description
+      description_label.style = styles.label.description
       InboxSlot.set_icons(slot_container, stack.name, icons)
       InboxSlot.set_tooltip(slot_container, Util.tooltip(title, desc, icons))
     else
@@ -249,7 +249,7 @@ function this.update(player)
       title_label.visible = false
       description_label.caption = {"blueprint-share.gui-empty"}
       description_label.visible = true
-      description_label.style = styles.empty_description
+      description_label.style = styles.label.empty_description
     end
   end
 end
