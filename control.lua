@@ -134,7 +134,6 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     import_payload(decoded.payload, player)
   end
   Inbox.process_payload(decoded.payload, player)
-  Inbox.update(player)
 end)
 
 -- Sending

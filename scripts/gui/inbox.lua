@@ -195,9 +195,7 @@ local function compact(inventory)
   end
 end
 
--- Public
-
-function this.update(player)
+local function update(player)
   local frame = get_frame(player) or build_frame(player)
 
   local player_storage = storage.players[player.index]
@@ -257,6 +255,28 @@ function this.update(player)
   end
 end
 
+local function show(player, should_show)
+  local frame = get_frame(player)
+  if should_show and not frame then
+    build_frame(player)
+    update(player)
+  elseif not should_show and frame then
+    local player_storage = storage.players[player.index]
+    if player_storage then
+      player_storage.inbox_location = frame.location
+    end
+    frame.destroy()
+  end
+end
+
+local function refresh(player)
+  if not get_frame(player) then return end
+  show(player, false)
+  show(player, true)
+end
+
+-- Public
+
 function this.process_payload(payload, player)
   if not (player and player.valid) then return end
 
@@ -286,26 +306,8 @@ function this.process_payload(payload, player)
   inventory[size].clear()
   inventory[size].set_stack(temp[1])
   temp.destroy()
-end
 
-local function show(player, should_show)
-  local frame = get_frame(player)
-  if should_show and not frame then
-    build_frame(player)
-    this.update(player)
-  elseif not should_show and frame then
-    local player_storage = storage.players[player.index]
-    if player_storage then
-      player_storage.inbox_location = frame.location
-    end
-    frame.destroy()
-  end
-end
-
-local function refresh(player)
-  if not get_frame(player) then return end
-  show(player, false)
-  show(player, true)
+  update(player)
 end
 
 function this.toggle(event)
@@ -372,7 +374,7 @@ function this.on_click(event)
     inventory[slot].clear()
     compact(inventory)
   end
-  this.update(player)
+  update(player)
 end
 
 return this
