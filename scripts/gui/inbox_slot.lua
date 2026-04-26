@@ -54,7 +54,7 @@ function this.set_icons(container, item_type, icons)
     end
 
     if sprite_path then
-      local icon_sprite = grid.add{
+      local icon_sprite = grid.add {
         type = "sprite",
         sprite = sprite_path,
       }
@@ -67,7 +67,7 @@ end
 function this.build(parent, name, item_type)
   local sprite = consts.gui.inbox_slot.sprites[item_type]
 
-  local container = parent.add{
+  local container = parent.add {
     type = "flow",
     name = name,
     direction = "vertical",
@@ -75,7 +75,7 @@ function this.build(parent, name, item_type)
   container.style.width = 40
   container.style.height = 40
 
-  local button = container.add{
+  local button = container.add {
     type = "sprite-button",
     name = consts.gui.inbox_slot.button.slot,
     sprite = sprite,
@@ -85,7 +85,7 @@ function this.build(parent, name, item_type)
   button.style.size = {40, 40}
 
   -- Centering flow overlaid on top of the button
-  local overlay = container.add{
+  local overlay = container.add {
     type = "flow",
     name = consts.gui.inbox_slot.flow.overlay,
     direction = "vertical",
@@ -99,7 +99,7 @@ function this.build(parent, name, item_type)
   overlay.ignored_by_interaction = true
 
   -- Table shrinks to content, flow centers it
-  local grid = overlay.add{
+  local grid = overlay.add {
     type = "table",
     name = consts.gui.inbox_slot.table.grid,
     column_count = 2,

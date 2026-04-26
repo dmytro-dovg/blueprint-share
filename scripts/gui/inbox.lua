@@ -167,14 +167,14 @@ local function build_frame(player)
     labels_flow.style.vertically_stretchable = true
     labels_flow.style.vertical_align = "center"
 
-    local title_label = labels_flow.add { 
+    labels_flow.add {
       type = "label",
       name = consts.gui.inbox.label.title,
       style = styles.label.title,
       caption = {"blueprint-share.gui-empty"},
     }
 
-    local description_label = labels_flow.add { 
+    labels_flow.add {
       type = "label",
       name = consts.gui.inbox.label.description,
     }
