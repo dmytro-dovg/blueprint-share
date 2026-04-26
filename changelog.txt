@@ -9,7 +9,7 @@ Version: 0.x.x
       - Fixed an import-result check that could misreport a successful receive.
       - Fixed locale inconsistencies in English and Ukrainian.
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.0
+Version: 0.1.1
 Date: 2026-04-22
   Bugfixes:
     - Fixed blueprint being received multiple times when connected to a server.
