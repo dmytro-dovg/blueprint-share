@@ -6,7 +6,7 @@ Send blueprints, blueprint books, deconstruction planners, and upgrade planners 
 
 Requires Factorio **2.0** or newer.
 
-![Demo](docs/demo.gif)
+![Demo](docs/demo2.gif)
 
 ## Quickstart
 
