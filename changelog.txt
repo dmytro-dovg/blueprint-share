@@ -1,7 +1,7 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.x.x
-Date: 2026-xx-xx
+Version: 0.2.0
+Date: 2026-04-26
   Features:
     - Added an inbox window with history of received blueprints, books, deconstruction and upgrade planners. Toggle with Ctrl + Shift + B.
     - Added an inbox capacity setting (per-player, 1–16 slots, default 5).
