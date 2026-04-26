@@ -35,8 +35,9 @@ Two-way sharing between a Steam copy and a second standalone copy:
 
 ## Usage
 
-- **Ctrl + B** - Send the blueprint, book, or planner currently in your cursor (or picked up from the blueprint library).
-- **Ctrl + R** - Manually receive. With **Auto-receive** on (default) incoming blueprints land in your cursor automatically. Use the hotkey in the Map Editor or when Auto-receive is off.
+- **Ctrl + B** - Send the blueprint, book, or planner currently in your cursor.
+- **Ctrl + Shift + B** - Toggle the **Inbox** window. Left-click a slot to put that item in your cursor; right-click to remove it. Capacity is configurable.
+- **Ctrl + R** - Force-drain the UDP buffer. Only needed while the game is paused or in the Map Editor (the auto-poll is suspended in those states). Imports the item to your cursor regardless of the Auto-receive setting.
 
 ## Settings
 
@@ -45,14 +46,15 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 | Setting | Default | Description |
 |---|---|---|
 | Destination port | `25002` | UDP port to send to. Must match the other instance's `--enable-lua-udp=<port>`. |
-| Auto-receive blueprints | `on` | Automatically place incoming blueprints in the cursor. Disable if you prefer to trigger imports with the hotkey. |
+| Auto-receive blueprints | `on` | Place incoming blueprints in the cursor automatically. |
+| Inbox capacity | `5` | Slots in the inbox window (1–16). |
 | Log level | `Info` | In-game message verbosity. `Quiet` hides all messages. `Debug` shows full diagnostics. The mod log file always records full output. |
 
 ## Limitations
 
 - **Localhost only.** No LAN or internet sharing - Factorio binds UDP to `127.0.0.1`.
 - **Packet size ≈ 65 KB.** Very large blueprint books can exceed the UDP limit and fail to send. Split the book or trim unused blueprints.
-- **Map Editor.** Auto-receive needs the simulation running. The editor is paused by default, so either unpause (**Tools -> Time -> Speed -> Play**) or use **Ctrl + R** to receive manually.
+- **Map Editor / paused game.** Auto-receive needs the tick running. Either unpause (**Tools -> Time -> Speed -> Play**) or press **Ctrl + R** to import manually.
 - **Headless servers.** Receiving is disabled when no players are connected.
 
 ## Troubleshooting
