@@ -31,6 +31,7 @@ script.on_event(defines.events.on_player_created, function(event)
 end)
 
 script.on_event(defines.events.on_player_removed, function(event)
+  if not storage.players then return end
   local player_storage = storage.players[event.player_index]
   if player_storage and player_storage.inbox_inventory and player_storage.inbox_inventory.valid then
     player_storage.inbox_inventory.destroy()
