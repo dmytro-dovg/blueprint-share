@@ -298,7 +298,7 @@ function this.process_payload(payload, player)
     return
   end
 
-  -- Import successfuly
+  -- Import success
   for slot = 1, size - 1 do
     inventory[slot].set_stack(inventory[slot + 1])
   end

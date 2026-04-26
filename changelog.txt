@@ -5,6 +5,7 @@ Date: 2026-04-26
   Features:
     - Added an inbox window with history of received blueprints, books, deconstruction and upgrade planners. Toggle with Ctrl + Shift + B.
     - Added an inbox capacity setting (per-player, 1–16 slots, default 5).
+    - Auto-received items are now placed in the cursor as a temporary stack. Pressing Q clears the item instead of placing it in the inventory.
   Bugfixes:
     - Fixed an import-result check that could misreport a successful receive.
     - Fixed locale inconsistencies in English and Ukrainian.
