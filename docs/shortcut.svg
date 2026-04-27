@@ -261,7 +261,7 @@
      id="layer1"
      inkscape:label="foreground">
     <g
-       id="g543"
+       id="stroke"
        inkscape:label="stroke">
       <g
          id="g447"
@@ -336,7 +336,7 @@
          id="use514" />
     </g>
     <g
-       id="g27"
+       id="arrows"
        transform="translate(-6.0833335,-0.08333347)"
        inkscape:label="arrows"
        style="display:none;fill:#ffffff;fill-opacity:1">
@@ -358,13 +358,13 @@
          inkscape:path-effect="#path-effect8-7;#path-effect9-0" />
     </g>
     <g
-       id="g27-2"
+       id="arrows_alt"
        transform="translate(-5.717048,0.12581073)"
-       inkscape:label="arrows"
-       style="fill:#ffffff;fill-opacity:1">
+       inkscape:label="arrows_alt"
+       style="display:inline;fill:#ffffff;fill-opacity:1">
       <path
          id="path4"
-         style="display:inline;fill:#ffffff;stroke-width:1.25;stroke-linecap:square;stroke-miterlimit:2;stroke-opacity:0.6;paint-order:markers fill stroke;fill-opacity:1"
+         style="display:inline;fill:#ffffff;fill-opacity:1;stroke-width:1.25;stroke-linecap:square;stroke-miterlimit:2;stroke-opacity:0.6;paint-order:markers fill stroke"
          d="m 11.6875,2.9166668 v 1.8333333 a 0.10355344,0.10355344 22.50001 0 0 0.176777,0.073223 l 0.418609,-0.4186088 0.117851,-0.1178511 c 0.31653,0.3862824 0.430955,0.7104246 0.432596,1.0465699 -0.0021,0.6042752 -0.365047,1.1391525 -0.905776,1.3721298 -0.126658,0.054572 -0.236761,0.1913167 -0.236761,0.3293879 v 0.6895752 c 0,0.1380712 0.111367,0.236172 0.245835,0.2050521 C 13.133241,7.6525467 13.999294,6.5832806 14,5.3333335 13.999638,4.6870661 13.764686,4.064927 13.342068,3.5809388 c -0.06053,-0.069323 -0.06071,-0.1747995 0.0044,-0.2398869 l 0.497608,-0.4976084 a 0.10355342,0.10355342 67.499995 0 0 -0.07322,-0.1767767 l -1.833333,0 a 0.25,0.25 135 0 0 -0.25,0.25 z"
          sodipodi:nodetypes="ccccccccccc"
          inkscape:path-effect="#path-effect7;#path-effect10"
