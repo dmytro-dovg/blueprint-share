@@ -17,3 +17,5 @@ macos/*
 archive
 docs
 docs/*
+tools
+tools/*

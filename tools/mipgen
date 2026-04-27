@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} -i INPUT_FILE [-s SIZE] [-c COUNT] [-q QUALITY] [-h] [OUTPUT_PREFIX]
+
+Generate a horizontal mipmap of progressively halved PNGs from an input image.
+
+Options:
+  -i INPUT_FILE  Input image file (required)
+  -s SIZE        Height in pixels of the largest mip level (default: 64)
+  -c COUNT       Number of mip levels (default: 4)
+  -q QUALITY     DPI for intermediary rasterisation (default: 600)
+  -h             Show this message
+  OUTPUT_PREFIX  Output filename prefix (default: input basename)
+
+Outputs <PREFIX>_<size>.png per level and <PREFIX>_mipmap.png to the current directory.
+
+Example:
+  ${0##*/} -i icon.svg -s 128 -c 5 atlas
+EOF
+}
+
+main() {
+    local input output height mip_count quality
+    local file_name output_file_prefix
+    while getopts "hi:c:s:q:" flag; do
+        case "$flag" in
+            h) usage; return ;;
+            i) input="$OPTARG" ;;
+            s) height="$OPTARG" ;;
+            c) mip_count="$OPTARG" ;;
+            q) quality="$OPTARG" ;;
+            *) usage >&2; return 1 ;;
+        esac
+    done
+
+    shift $((OPTIND - 1))
+
+    if [[ -z $input ]]; then
+        usage >&2
+        return 1
+    fi
+
+    file_name="${input##*/}"
+    file_name="${file_name%.*}"
+    output_file_prefix="${1:-$file_name}_"
+    height="${height:-64}"
+    quality="${quality:-600}"
+    mip_count="${mip_count:-4}"
+
+    # Ensure count is at least 1
+    (( mip_count < 1 )) && mip_count=1
+
+    local mips=()
+    local width=0
+    local i
+    for (( i = 0; i < mip_count; i++ )); do
+        mips+=( $(( height / ( 2**i) )) )
+        (( width += ${mips[i]} ))
+    done
+
+    printf "Generating mipmap\n" >&2
+    printf "Sizes: %s (total: %s)\n" "${mips[*]}" "$width" >&2
+    printf "Input: %s\n" "$input" >&2
+    printf "Intermediary SVG DPI: %s\n" "$quality" >&2
+
+    # Create temp dir
+    local temp_dir="$(mktemp -d)"
+    local temp_file="${temp_dir}/${file_name}.tmp.png"
+    trap "rm -rf $temp_dir" EXIT
+    
+    printf "Generating intermediary file: %s...\n" "$temp_file" >&2
+    magick convert -density "$quality" -background none "$input" "$temp_file"
+    local images=()
+    for s in "${mips[@]}"; do
+        printf "Generating %s...\n" "$s" >&2
+        local image="${temp_dir}/${output_file_prefix}${s}.png"
+        magick convert "$temp_file" -scale "${s}x${s}" "$image" 
+        images+=("$image")
+    done
+    convert "${images[@]}" \
+        -background transparent \
+        -gravity NorthWest \
+        +append \
+        -extent "${width}x${height}" \
+        "${temp_dir}/${output_file_prefix}mipmap.png"
+    mv "${temp_dir}/${output_file_prefix}"* ./
+}
+
+main "$@"
