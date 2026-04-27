@@ -152,11 +152,14 @@ script.on_event("blueprint-share-send", function(event)
   local player = Util.valid_player(event)
   if not player then return end
 
+  -- Commented out because this returns true with an empty book, which is a valid export item.
+  -- It can still contain a title, description and preview icons.
+
   -- Cursor is empty
-  if player.is_cursor_empty() then
-    Log.info({"blueprint-share.hold-blueprint"}, player)
-    return
-  end
+  -- if player.is_cursor_empty() then
+  --   Log.info({"blueprint-share.hold-blueprint"}, player)
+  --   return
+  -- end
 
   local data, localised_type_name = Util.export_cursor_data(player)
 
