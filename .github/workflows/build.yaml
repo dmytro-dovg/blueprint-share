@@ -45,7 +45,7 @@ jobs:
           MOD_VERSION: ${{ steps.version.outputs.MOD_VERSION }}
         run: |
           set -e
-          archive_path=$(./archive -n $MOD_NAME -v "$MOD_VERSION" dist)
+          archive_path=$(./tools/archive -n $MOD_NAME -v "$MOD_VERSION" dist)
           result=$?
           if (( result == 0 )); then
             printf 'Created archive at \e[32m%s\e[0m\n' "${archive_path}"
