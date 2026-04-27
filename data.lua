@@ -1,4 +1,5 @@
 require "styles"
+require "graphics"
 
 local send_input = {
   type = "custom-input",

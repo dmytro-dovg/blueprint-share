@@ -10,6 +10,7 @@ local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
   local player_storage = storage.players[player.index]
   player_storage.inbox_inventory = player_storage.inbox_inventory or game.create_inventory(Settings.inbox_capacity(player))
+  Inbox.init(player)
 end
 
 script.on_init(function()
@@ -31,6 +32,10 @@ script.on_event(defines.events.on_player_created, function(event)
 end)
 
 script.on_event(defines.events.on_player_removed, function(event)
+  local player = Util.valid_player(event)
+  if player then
+    Inbox.cleanup(player)
+  end
   if not storage.players then return end
   local player_storage = storage.players[event.player_index]
   if player_storage and player_storage.inbox_inventory and player_storage.inbox_inventory.valid then

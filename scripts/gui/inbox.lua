@@ -2,6 +2,7 @@
 local Log = require "scripts.log"
 local Util = require "scripts.util"
 local InboxSlot = require "scripts.gui.inbox_slot"
+local mod_gui = require("mod-gui")
 
 local this = {}
 
@@ -27,6 +28,11 @@ local consts = {
       },
       tag = {
         slot = "blueprint-share-gui-inbox-tag-slot",
+      },
+    },
+    modgui = {
+      button = {
+        toggle = "blueprint-share-modgui-button-toggle",
       },
     },
   },
@@ -67,11 +73,27 @@ local function get_frame(player)
   return player.gui.screen[consts.gui.inbox.frame.main]
 end
 
+local function get_mod_gui_button(player)
+  return mod_gui.get_button_flow(player)[consts.gui.modgui.button.toggle]
+end
+
 local function estimated_frame_height(slot_count)
   return sizes.titlebar.height
        + sizes.content.padding * 2
        + slot_count * sizes.slot.height
        + math.max(0, slot_count - 1) * sizes.slot.separator
+end
+
+local function build_mod_gui_button(player)
+  local flow = mod_gui.get_button_flow(player)
+  if not flow then return end
+  flow.add{
+    type = "sprite-button",
+    name = consts.gui.modgui.button.toggle,
+    sprite = "blueprint-share-icon",
+    tooltip = {"blueprint-share.gui-inbox-toggle-tooltip"},
+    style = mod_gui.button_style,
+  }
 end
 
 local function build_frame(player)
@@ -277,6 +299,20 @@ end
 
 -- Public
 
+function this.init(player)
+  local button = get_mod_gui_button(player)
+  if not button then
+    build_mod_gui_button(player)
+  end
+end
+
+function this.cleanup(player)
+  local button = get_mod_gui_button(player)
+  if button then
+    button.destroy()
+  end
+end
+
 function this.process_payload(payload, player)
   if not (player and player.valid) then return end
 
@@ -351,6 +387,10 @@ end
 function this.on_click(event)
   local player = Util.valid_player(event)
   if not player then return end
+
+  if event.element.name == consts.gui.modgui.button.toggle then
+    this.toggle(event)
+  end
 
   if event.element.name == consts.gui.inbox.button.close then
     show(player, false)
