@@ -348,6 +348,7 @@ function this.process_payload(payload, player)
   temp.destroy()
 
   show(player, true)
+  update(player)
 end
 
 function this.toggle(event)
