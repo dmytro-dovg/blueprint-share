@@ -2,7 +2,7 @@
 
 usage() {
     cat <<EOF
-Usage: ${0##*/} -i INPUT_FILE [-s SIZE] [-c COUNT] [-q QUALITY] [-h] [OUTPUT_PREFIX]
+Usage: ${0##*/} -i INPUT_FILE [-s SIZE] [-c COUNT] [-q QUALITY] [-t COLOR] [-m] [-h] [OUTPUT_PREFIX]
 
 Generate a horizontal mipmap of progressively halved PNGs from an input image.
 
@@ -11,26 +11,30 @@ Options:
   -s SIZE        Height in pixels of the largest mip level (default: 64)
   -c COUNT       Number of mip levels (default: 4)
   -q QUALITY     DPI for intermediary rasterisation (default: 600)
+  -t COLOR       Tint color
+  -m             Output only minmap
   -h             Show this message
   OUTPUT_PREFIX  Output filename prefix (default: input basename)
 
 Outputs <PREFIX>_<size>.png per level and <PREFIX>_mipmap.png to the current directory.
 
 Example:
-  ${0##*/} -i icon.svg -s 128 -c 5 atlas
+  ${0##*/} -i icon.svg -s 128 -c 5 -t #1B1B1B -m atlas
 EOF
 }
 
 main() {
-    local input output height mip_count quality
+    local input output height mip_count quality mipmap_only tint_color
     local file_name output_file_prefix
-    while getopts "hi:c:s:q:" flag; do
+    while getopts "hi:c:s:q:t:m" flag; do
         case "$flag" in
             h) usage; return ;;
             i) input="$OPTARG" ;;
             s) height="$OPTARG" ;;
             c) mip_count="$OPTARG" ;;
             q) quality="$OPTARG" ;;
+            t) tint_color="$OPTARG" ;;
+            m) mipmap_only=1 ;;
             *) usage >&2; return 1 ;;
         esac
     done
@@ -44,7 +48,8 @@ main() {
 
     file_name="${input##*/}"
     file_name="${file_name%.*}"
-    output_file_prefix="${1:-$file_name}_"
+    output_file="${1:-$file_name}"
+    output_file_prefix="${output_file}_"
     height="${height:-64}"
     quality="${quality:-600}"
     mip_count="${mip_count:-4}"
@@ -71,7 +76,16 @@ main() {
     trap "rm -rf $temp_dir" EXIT
     
     printf "Generating intermediary file: %s...\n" "$temp_file" >&2
-    magick convert -density "$quality" -background none "$input" "$temp_file"
+
+    cmd=(magick convert -density "$quality" -background none "$input")
+
+    if [[ -n $tint_color ]]; then
+        cmd+=(-fuzz 5% -fill "$tint_color" -opaque white)
+    fi
+
+    cmd+=("$temp_file")
+
+    "${cmd[@]}"
     local images=()
     for s in "${mips[@]}"; do
         printf "Generating %s...\n" "$s" >&2
@@ -79,13 +93,15 @@ main() {
         magick convert "$temp_file" -scale "${s}x${s}" "$image" 
         images+=("$image")
     done
+    local mipmap_path="${temp_dir}/${output_file}.png"
     convert "${images[@]}" \
         -background transparent \
         -gravity NorthWest \
         +append \
         -extent "${width}x${height}" \
-        "${temp_dir}/${output_file_prefix}mipmap.png"
-    mv "${temp_dir}/${output_file_prefix}"* ./
+        "$mipmap_path"
+    [[ -z $mipmap_only ]] && mv "${temp_dir}/${output_file_prefix}"* ./
+    mv "${mipmap_path}" ./
 }
 
 main "$@"
