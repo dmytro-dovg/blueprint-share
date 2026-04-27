@@ -219,7 +219,8 @@ local function compact(inventory)
 end
 
 local function update(player)
-  local frame = get_frame(player) or build_frame(player)
+  local frame = get_frame(player)
+  if not frame then return end
 
   local player_storage = storage.players[player.index]
   if not player_storage then return end
@@ -346,7 +347,7 @@ function this.process_payload(payload, player)
   inventory[size].set_stack(temp[1])
   temp.destroy()
 
-  update(player)
+  show(player, true)
 end
 
 function this.toggle(event)
