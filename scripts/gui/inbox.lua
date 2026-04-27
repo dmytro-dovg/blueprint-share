@@ -29,6 +29,7 @@ local consts = {
       tag = {
         slot = "blueprint-share-gui-inbox-tag-slot",
       },
+      shortcut = "blueprint-share-inbox",
     },
     modgui = {
       button = {
@@ -282,12 +283,14 @@ local function show(player, should_show)
   if should_show and not frame then
     build_frame(player)
     update(player)
+    player.set_shortcut_toggled(consts.gui.inbox.shortcut, true)
   elseif not should_show and frame then
     local player_storage = storage.players[player.index]
     if player_storage then
       player_storage.inbox_location = frame.location
     end
     frame.destroy()
+    player.set_shortcut_toggled(consts.gui.inbox.shortcut, false)
   end
 end
 
@@ -415,6 +418,13 @@ function this.on_click(event)
     compact(inventory)
   end
   update(player)
+end
+
+function this.on_shortcut(event)
+  if event.prototype_name ~= consts.gui.inbox.shortcut then return end
+  local player = Util.valid_player(event)
+  if not player then return end
+  this.toggle(event)
 end
 
 return this

@@ -60,6 +60,10 @@ script.on_event("blueprint-share-toggle-inbox", function(event)
   Inbox.toggle(event)
 end)
 
+script.on_event(defines.events.on_lua_shortcut, function(event)
+  Inbox.on_shortcut(event)
+end)
+
 -- Receiving
 
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)

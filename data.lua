@@ -1,5 +1,6 @@
-require "styles"
-require "graphics"
+require "prototypes.styles"
+require "prototypes.graphics"
+require "prototypes.shortcuts"
 
 local send_input = {
   type = "custom-input",
