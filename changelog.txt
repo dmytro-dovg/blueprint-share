@@ -1,5 +1,16 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2026-04-28
+  Gui:
+    - Added a shortcut for toggling the inbox window.
+    - Added a mod GUI button (top-left of the screen) for toggling the inbox window.
+    - Added a setting to show or hide the mod GUI button (per-player, default: enabled).
+  Changes:
+    - Renamed the inbox window title to "Blueprint inbox".
+  Bugfixes:
+    - Fixed empty blueprint books not being exported correctly.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2026-04-26
   Features:
