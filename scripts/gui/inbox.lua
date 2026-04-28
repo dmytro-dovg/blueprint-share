@@ -336,9 +336,10 @@ end
 
 local function show_mod_gui_button(player, should_show)
   local button = get_mod_gui_button(player)
-  if not button and should_show and Settings.show_mod_gui_button(player) then
+  local should_exist = should_show and Settings.show_mod_gui_button(player)
+  if should_exist and not button then
     build_mod_gui_button(player)
-  elseif button then
+  elseif not should_exist and button then
     button.destroy()
   end
 end
