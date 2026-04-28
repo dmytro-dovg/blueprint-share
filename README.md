@@ -48,6 +48,7 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 | Destination port | `25002` | UDP port to send to. Must match the other instance's `--enable-lua-udp=<port>`. |
 | Auto-receive blueprints | `on` | Place incoming blueprints in the cursor automatically. |
 | Inbox capacity | `5` | Slots in the inbox window (1–16). |
+| Show inbox button | `on` | Show the inbox button in the top-left corner of the screen. |
 | Log level | `Info` | In-game message verbosity. `Quiet` hides all messages. `Debug` shows full diagnostics. The mod log file always records full output. |
 
 ## Limitations
