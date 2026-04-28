@@ -22,4 +22,8 @@ function Settings.inbox_capacity(player)
   return get(player, "inbox-capacity")
 end
 
+function Settings.show_mod_gui_button(player)
+  return get(player, "show-mod-gui-button")
+end
+
 return Settings

@@ -31,9 +31,17 @@ local inbox_capacity = {
   maximum_value = 16,
 }
 
+local show_mod_gui_button = {
+  type = "bool-setting",
+  name = "blueprint-share-show-mod-gui-button",
+  setting_type = "runtime-per-user",
+  default_value = true,
+}
+
 data:extend({
   auto_receive,
   destination_port,
   log_level,
   inbox_capacity,
+  show_mod_gui_button,
 })

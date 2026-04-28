@@ -2,6 +2,7 @@
 local Log = require "scripts.log"
 local Util = require "scripts.util"
 local InboxSlot = require "scripts.gui.inbox_slot"
+local Settings = require "scripts.settings"
 local mod_gui = require("mod-gui")
 
 local this = {}
@@ -301,20 +302,55 @@ local function refresh(player)
   show(player, true)
 end
 
--- Public
+local function resize(player, new_capacity)
+  local player_storage = storage.players[player.index]
+  if not player_storage then return end
 
-function this.init(player)
+  local inventory = player_storage.inbox_inventory
+  if not (inventory and inventory.valid) then return end
+
+  local old_capacity = #inventory
+  local delta = new_capacity - old_capacity
+  if delta == 0 then return end
+
+  if delta > 0 then
+    -- Pre-resize first to make extra slots available for the shift
+    inventory.resize(new_capacity)
+    for i = new_capacity, 1, -1 do
+      if i > delta then
+        inventory[i].set_stack(inventory[i - delta])
+      else
+        inventory[i].clear()
+      end
+    end
+  elseif delta < 0 then
+    for i = 1, new_capacity do
+      inventory[i].set_stack(inventory[i - delta])
+    end
+    -- Post-resize to truncate remaining duplicate slots
+    inventory.resize(new_capacity)
+  end
+
+  refresh(player)
+end
+
+local function show_mod_gui_button(player, should_show)
   local button = get_mod_gui_button(player)
-  if not button then
+  if not button and should_show and Settings.show_mod_gui_button(player) then
     build_mod_gui_button(player)
+  elseif button then
+    button.destroy()
   end
 end
 
+-- Public
+
+function this.init(player)
+  show_mod_gui_button(player, true)
+end
+
 function this.cleanup(player)
-  local button = get_mod_gui_button(player)
-  if button then
-    button.destroy()
-  end
+  show_mod_gui_button(player, false)
 end
 
 function this.process_payload(payload, player)
@@ -357,38 +393,6 @@ function this.toggle(event)
   show(player, not get_frame(player))
 end
 
-function this.resize(player, new_capacity)
-  local player_storage = storage.players[player.index]
-  if not player_storage then return end
-
-  local inventory = player_storage.inbox_inventory
-  if not (inventory and inventory.valid) then return end
-
-  local old_capacity = #inventory
-  local delta = new_capacity - old_capacity
-  if delta == 0 then return end
-
-  if delta > 0 then
-    -- Pre-resize first to make extra slots available for the shift
-    inventory.resize(new_capacity)
-    for i = new_capacity, 1, -1 do
-      if i > delta then
-        inventory[i].set_stack(inventory[i - delta])
-      else
-        inventory[i].clear()
-      end
-    end
-  elseif delta < 0 then
-    for i = 1, new_capacity do
-      inventory[i].set_stack(inventory[i - delta])
-    end
-    -- Post-resize to truncate remaining duplicate slots
-    inventory.resize(new_capacity)
-  end
-
-  refresh(player)
-end
-
 function this.on_click(event)
   local player = Util.valid_player(event)
   if not player then return end
@@ -427,6 +431,21 @@ function this.on_shortcut(event)
   local player = Util.valid_player(event)
   if not player then return end
   this.toggle(event)
+end
+
+function this.on_runtime_mod_setting_changed(event)
+  if event.setting == "blueprint-share-inbox-capacity" then
+    local player = Util.valid_player(event)
+    if not player then return end
+    resize(player, Settings.inbox_capacity(player))
+    return
+  end
+
+  if event.setting == "blueprint-share-show-mod-gui-button" then
+    local player = Util.valid_player(event)
+    if not player then return end
+    show_mod_gui_button(player, true)
+  end
 end
 
 return this
