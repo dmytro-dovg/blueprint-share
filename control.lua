@@ -1,10 +1,14 @@
 local Settings = require "scripts.settings"
 local Log = require "scripts.log"
-local Config = require "scripts.config"
 local Util = require "scripts.util"
 local Inbox = require "scripts.gui.inbox"
+local FragmentedData = require "scripts.fragmented_data"
+local Reassembler = require "scripts.reassembler"
 
 -- Initialisation
+
+local pending = {}
+local reassemblers = {}
 
 local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
@@ -65,14 +69,53 @@ end)
 -- Poll UDP buffer every 10 ticks (~166ms at 60 UPS)
 -- Factorio's UDP sockets are bound to 127.0.0.1 only, so this only receives
 -- packets sent to localhost on the same machine.
-script.on_nth_tick(10, function()
+script.on_nth_tick(10, function(event)
   -- Skip on headless server with no players connected (causes engine crash)
   if game.is_multiplayer() and #game.connected_players == 0 then
     return
   end
 
+  -- Clean up reassemblers that have not received packets recently
+  local invalidated = {}
+  for i, reassembler in pairs(reassemblers) do
+    if reassembler.last_tick + 120 < event.tick then
+      invalidated[#invalidated + 1] = i
+    end
+  end
+
+  for _, id in pairs(invalidated) do
+    reassemblers[id] = nil
+  end
+
   -- Check UDP buffer
   helpers.recv_udp()
+end)
+
+script.on_event(defines.events.on_tick, function(event)
+  if next(pending) == nil then return end
+
+  -- Send 1 packet per tick not to overflow receive buffer
+  for player_index, item in pairs(pending) do
+    local next_packet = item.data:next()
+    if next_packet then
+      local success, err = pcall(function()
+        helpers.send_udp(item.port, helpers.table_to_json(next_packet))
+      end)
+
+      if not success then
+        pending[player_index] = nil
+        local player = game.get_player(player_index)
+        if not player or not player.valid then return end
+        Log.debug("Failed to send: " .. tostring(err), player)
+        Log.error({"blueprint-share.error-failed-to-send", item.type_name, item.port}, player)
+      end
+    else
+      pending[player_index] = nil
+      local player = game.get_player(player_index)
+      if not player or not player.valid then return end
+      Log.info({"blueprint-share.sent", item.type_name, item.port}, player)
+    end
+  end
 end)
 
 local function import_payload(payload, player)
@@ -114,32 +157,42 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   local is_manual_trigger = game.tick_paused
   local auto_receive = Settings.auto_receive(player)
 
-  Log.debug("Player: " .. player.name .. "(" .. player.index .. ")", player)
-  Log.debug("Received on port: " ..  event.source_port, player)
-
   local decoded = helpers.json_to_table(event.payload)
-  if not decoded or not decoded.payload or not decoded.game_version or not decoded.mod_version then
+  if not decoded or not decoded.id or not decoded.total or 
+     type(decoded.total) ~= "number" or decoded.total < 1 then
     Log.debug("Invalid payload: " .. tostring(event.payload), player)
     Log.error({"blueprint-share.error-invalid-payload"}, player)
     return
   end
 
-  Log.debug(string.format(
-    "Received from:\n    Factorio %s\n    blueprint-share %s",
-    decoded.game_version, decoded.mod_version 
-    ), player)
-
-  if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
-    Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
+  -- Do a version check. This is only performed on "metachunk".
+  if decoded.game_version then
+    Log.debug("Player: " .. player.name .. "(" .. player.index .. ")", player)
+    Log.debug("Began receiving on port: " ..  event.source_port, player)
+    if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
+      Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
+    end
   end
 
-  -- Always import if triggered manually.
-  -- Otherwise check auto-receive setting during polling.
-  if auto_receive or is_manual_trigger then
-    Log.debug("Received due to " .. (is_manual_trigger and "manual trigger" or "auto-receive setting"), player)
-    import_payload(decoded.payload, player)
+  local reassembler = reassemblers[decoded.id]
+  if not reassembler then
+    reassembler = Reassembler.new(decoded, event.tick)
+    reassemblers[decoded.id] = reassembler
   end
-  Inbox.process_payload(decoded.payload, player)
+
+  if reassembler:reassemble(decoded, event.tick) then
+    Log.debug("Received on port: " ..  event.source_port, player)
+    local data = reassembler:data()
+
+    -- Always import if triggered manually.
+    -- Otherwise check auto-receive setting during polling.
+    if auto_receive or is_manual_trigger then
+      Log.debug("Received due to " .. (is_manual_trigger and "manual trigger" or "auto-receive setting"), player)
+      import_payload(data, player)
+    end
+    Inbox.process_payload(data, player)
+    reassemblers[decoded.id] = nil
+  end
 end)
 
 -- Sending
@@ -147,15 +200,6 @@ end)
 script.on_event("blueprint-share-send", function(event)
   local player = Util.valid_player(event)
   if not player then return end
-
-  -- Commented out because this returns true with an empty book, which is a valid export item.
-  -- It can still contain a title, description and preview icons.
-
-  -- Cursor is empty
-  -- if player.is_cursor_empty() then
-  --   Log.info({"blueprint-share.hold-blueprint"}, player)
-  --   return
-  -- end
 
   local data, localised_type_name = Util.export_cursor_data(player)
 
@@ -165,27 +209,13 @@ script.on_event("blueprint-share-send", function(event)
     return
   end
 
-  local json = helpers.table_to_json({
-    game_version = helpers.game_version,
-    mod_version = script.active_mods["blueprint-share"],
-    payload = data
-  })
-  Log.debug("Payload length: " .. tostring(#json), player)
-
-  -- UDP packets cannot exceed 65535 bytes
-  if #json > Config.max_udp_packet_size then
-    Log.error({"blueprint-share.error-payload-too-large"}, player)
-    return
-  end
-  local port = Settings.destination_port(player)
-  local success, err = pcall(function()
-    helpers.send_udp(port, json, player.index)
-  end)
-
-  if success then
-    Log.info({"blueprint-share.sent", localised_type_name, port}, player)
+  if not pending[player.index] then
+    pending[player.index] = {
+      data = FragmentedData.new(data, math.random(1, 2^32)),
+      port = Settings.destination_port(player),
+      type_name = localised_type_name
+    }
   else
-    Log.debug("Failed to send: " .. tostring(err), player)
-    Log.error({"blueprint-share.error-failed-to-send", localised_type_name, port}, player)
+    Log.warn({"blueprint-share.warning-pending-transfer", pending[player.index].type_name}, player)
   end
 end)
