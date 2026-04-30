@@ -17,7 +17,7 @@ function Reassembler:reassemble(chunk, tick)
   end
 
   -- Validation
-  if not chunk.data or not chunk.index then return false end
+  if not chunk.data or not chunk.index or type(chunk.data) ~= "string" then return false end
 
   local index = chunk.index
   if type(index) ~= "number" or index % 1 ~= 0 or index < 1 or index > self.total then
