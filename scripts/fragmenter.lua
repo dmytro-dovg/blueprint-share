@@ -1,8 +1,8 @@
-local FragmentedData = {}
-FragmentedData.__index = FragmentedData
+local Fragmenter = {}
+Fragmenter.__index = Fragmenter
 
-function FragmentedData.new(data, identifier)
-  local self = setmetatable({}, FragmentedData)
+function Fragmenter.new(data, identifier)
+  local self = setmetatable({}, Fragmenter)
 
   -- Each data packet is encoded as:
   --   {"id":<id>,"index":<index>,"total":<total>,"data":"<chunk>"}
@@ -38,7 +38,7 @@ function FragmentedData.new(data, identifier)
   return self
 end
 
-function FragmentedData:next()
+function Fragmenter:next()
   if self.index == 0 then
     self.index = 1
     return self.metachunk
@@ -51,4 +51,4 @@ function FragmentedData:next()
   return chunk
 end
 
-return FragmentedData
+return Fragmenter

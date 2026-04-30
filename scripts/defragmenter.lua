@@ -1,8 +1,8 @@
-local Reassembler = {}
-Reassembler.__index = Reassembler
+local Defragmenter = {}
+Defragmenter.__index = Defragmenter
 
-function Reassembler.new(chunk, tick)
-  local self = setmetatable({}, Reassembler)
+function Defragmenter.new(chunk, tick)
+  local self = setmetatable({}, Defragmenter)
   self.chunks = {}
   self.id = chunk.id
   self.total = chunk.total
@@ -11,7 +11,7 @@ function Reassembler.new(chunk, tick)
   return self
 end
 
-function Reassembler:reassemble(chunk, tick)
+function Defragmenter:add(chunk, tick)
   if chunk.id ~= self.id then
     return false
   end
@@ -36,7 +36,7 @@ function Reassembler:reassemble(chunk, tick)
   return false
 end
 
-function Reassembler:data()
+function Defragmenter:data()
   if self.received == self.total then
     local ordered = {}
     for i, v in ipairs(self.chunks) do
@@ -46,4 +46,4 @@ function Reassembler:data()
   end
 end
 
-return Reassembler
+return Defragmenter

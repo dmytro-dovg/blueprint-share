@@ -2,13 +2,13 @@ local Settings = require "scripts.settings"
 local Log = require "scripts.log"
 local Util = require "scripts.util"
 local Inbox = require "scripts.gui.inbox"
-local FragmentedData = require "scripts.fragmented_data"
-local Reassembler = require "scripts.reassembler"
+local Fragmenter = require "scripts.fragmenter"
+local Defragmenter = require "scripts.defragmenter"
 
 -- Initialisation
 
 local pending = {}
-local reassemblers = {}
+local defragmenters = {}
 
 local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
@@ -75,16 +75,16 @@ script.on_nth_tick(10, function(event)
     return
   end
 
-  -- Clean up reassemblers that have not received packets recently
+  -- Clean up defragmenters that have not received packets recently
   local invalidated = {}
-  for i, reassembler in pairs(reassemblers) do
-    if reassembler.last_tick + 120 < event.tick then
+  for i, defragmenter in pairs(defragmenters) do
+    if defragmenter.last_tick + 120 < event.tick then
       invalidated[#invalidated + 1] = i
     end
   end
 
   for _, id in pairs(invalidated) do
-    reassemblers[id] = nil
+    defragmenters[id] = nil
   end
 
   -- Check UDP buffer
@@ -181,15 +181,15 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     end
   end
 
-  local reassembler = reassemblers[decoded.id]
-  if not reassembler then
-    reassembler = Reassembler.new(decoded, event.tick)
-    reassemblers[decoded.id] = reassembler
+  local defragmenter = defragmenters[decoded.id]
+  if not defragmenter then
+    defragmenter = Defragmenter.new(decoded, event.tick)
+    defragmenters[decoded.id] = defragmenter
   end
 
-  if reassembler:reassemble(decoded, event.tick) then
+  if defragmenter:add(decoded, event.tick) then
     Log.debug("Received on port: " ..  event.source_port, player)
-    local data = reassembler:data()
+    local data = defragmenter:data()
 
     -- Always import if triggered manually.
     -- Otherwise check auto-receive setting during polling.
@@ -198,7 +198,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
       import_payload(data, player)
     end
     Inbox.process_payload(data, player)
-    reassemblers[decoded.id] = nil
+    defragmenters[decoded.id] = nil
   end
 end)
 
@@ -218,7 +218,7 @@ script.on_event("blueprint-share-send", function(event)
 
   if not pending[player.index] then
     pending[player.index] = {
-      data = FragmentedData.new(data, math.random(1, 2^32)),
+      data = Fragmenter.new(data, math.random(1, 2^32)),
       port = Settings.destination_port(player),
       type_name = localised_type_name
     }
