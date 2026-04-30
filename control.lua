@@ -91,8 +91,11 @@ script.on_nth_tick(10, function(event)
   helpers.recv_udp()
 end)
 
-script.on_event(defines.events.on_tick, function(event)
-  if next(pending) == nil then return end
+local function on_tick_handler(event)
+  if next(pending) == nil then
+    script.on_event(defines.events.on_tick, nil)
+    return
+  end
 
   -- Send 1 packet per tick not to overflow receive buffer
   for player_index, item in pairs(pending) do
@@ -116,7 +119,7 @@ script.on_event(defines.events.on_tick, function(event)
       Log.info({"blueprint-share.sent", item.type_name, item.port}, player)
     end
   end
-end)
+end
 
 local function import_payload(payload, player)
   if payload and player.cursor_stack and player.cursor_stack.valid then
@@ -219,6 +222,8 @@ script.on_event("blueprint-share-send", function(event)
       port = Settings.destination_port(player),
       type_name = localised_type_name
     }
+
+    script.on_event(defines.events.on_tick, on_tick_handler)
   else
     Log.warn({"blueprint-share.warning-pending-transfer", pending[player.index].type_name}, player)
   end
