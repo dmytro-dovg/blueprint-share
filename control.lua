@@ -102,7 +102,7 @@ local function on_tick_handler(event)
     local next_packet = item.data:next()
     if next_packet then
       local success, err = pcall(function()
-        helpers.send_udp(item.port, helpers.table_to_json(next_packet))
+        helpers.send_udp(item.port, helpers.table_to_json(next_packet), player_index)
       end)
 
       if not success then
