@@ -15,9 +15,9 @@ function FragmentedData.new(data, identifier)
   local target_encoded = 4096
   local envelope = 35 + 10 + 7 + 7
   local safety = 8
-  self.chunkSize = target_encoded - envelope - safety
+  local chunk_size = target_encoded - envelope - safety
 
-  self.total = math.ceil(#data / self.chunkSize)
+  self.total = math.ceil(#data / chunk_size)
   self.index = 0  -- 0 means metachunk not sent yet
 
   self.metachunk = {
@@ -33,7 +33,7 @@ function FragmentedData.new(data, identifier)
       id = identifier,
       index = i,
       total = self.total,
-      data = data:sub((i - 1) * self.chunkSize + 1, i * self.chunkSize),
+      data = data:sub((i - 1) * chunk_size + 1, i * chunk_size),
     }
   end
   return self
