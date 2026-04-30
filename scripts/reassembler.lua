@@ -1,4 +1,4 @@
-Reassembler = {}
+local Reassembler = {}
 Reassembler.__index = Reassembler
 
 function Reassembler.new(chunk, tick)

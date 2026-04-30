@@ -1,9 +1,8 @@
-FragmentedData = {}
+local FragmentedData = {}
 FragmentedData.__index = FragmentedData
 
 function FragmentedData.new(data, identifier)
   local self = setmetatable({}, FragmentedData)
-  local chunks = {}
 
   -- Each data packet is encoded as:
   --   {"id":<id>,"index":<index>,"total":<total>,"data":"<chunk>"}
