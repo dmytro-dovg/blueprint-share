@@ -158,20 +158,24 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
   local auto_receive = Settings.auto_receive(player)
 
   local decoded = helpers.json_to_table(event.payload)
-  if not decoded or not decoded.id or not decoded.total or 
-     type(decoded.total) ~= "number" or decoded.total < 1 then
-    Log.debug("Invalid payload: " .. tostring(event.payload), player)
-    Log.error({"blueprint-share.error-invalid-payload"}, player)
-    return
-  end
 
-  -- Do a version check. This is only performed on "metachunk".
-  if decoded.game_version then
+    -- Do a version check. This is only performed on "metachunk".
+  if decoded and decoded.game_version and decoded.mod_version then
     Log.debug("Player: " .. player.name .. "(" .. player.index .. ")", player)
     Log.debug("Began receiving on port: " ..  event.source_port, player)
     if helpers.compare_versions(helpers.game_version, decoded.game_version) ~= 0 then
       Log.warn({"blueprint-share.warning-version-mismatch", helpers.game_version, decoded.game_version}, player)
     end
+    if helpers.compare_versions(script.active_mods["blueprint-share"], decoded.mod_version) ~= 0 then
+      Log.warn({"blueprint-share.warning-mod-version-mismatch", script.active_mods["blueprint-share"], decoded.mod_version}, player)
+    end
+  end
+
+  if not decoded or not decoded.id or not decoded.total or 
+     type(decoded.total) ~= "number" or decoded.total < 1 then
+    Log.debug("Invalid payload: " .. tostring(event.payload), player)
+    Log.error({"blueprint-share.error-invalid-payload"}, player)
+    return
   end
 
   local reassembler = reassemblers[decoded.id]
