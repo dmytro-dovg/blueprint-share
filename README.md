@@ -36,7 +36,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
 ## Usage
 
 - **Ctrl + B** - Send the blueprint, book, or planner currently in your cursor.
-- **Ctrl + Shift + B** - Toggle the **Inbox** window. Left-click a slot to put that item in your cursor; right-click to remove it. Capacity is configurable.
+- **Ctrl + Shift + B** - Toggle the **Inbox** window. Items received while Auto-receive is off land here. Left-click a slot to put that item in your cursor, right-click to remove it. Larger transfers show a progress bar while they arrive. Capacity is configurable.
 - **Ctrl + R** - Force-drain the UDP buffer. Only needed while the game is paused or in the Map Editor (the auto-poll is suspended in those states). Imports the item to your cursor regardless of the Auto-receive setting.
 
 ## Settings
@@ -54,19 +54,20 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 ## Limitations
 
 - **Localhost only.** No LAN or internet sharing - Factorio binds UDP to `127.0.0.1`.
-- **Packet size ≈ 65 KB.** Very large blueprint books can exceed the UDP limit and fail to send. Split the book or trim unused blueprints.
+- **Very large books may briefly freeze the game.** Books of any size transfer fine, and the inbox shows a progress bar while they arrive. Sending or receiving a very large book can pause the game for a moment at each end.
+- **One transfer at a time.** If two items are sent to the same instance at once, only the first goes through.
 - **Map Editor / paused game.** Auto-receive needs the tick running. Either unpause (**Tools -> Time -> Speed -> Play**) or press **Ctrl + R** to import manually.
 - **Headless servers.** Receiving is disabled when no players are connected.
 
 ## Troubleshooting
 
 - **Invalid payload.** - The other instance sent a packet the mod couldn't decode. Usually means a different, unrelated process is sending UDP to your port. Change the port.
-- **Blueprint is too large.** - The serialised blueprint exceeds the UDP limit. Send a smaller book.
 - **Could not send...** - The OS rejected the send. Check that the destination port is valid and that no firewall rule is blocking localhost UDP.
-- **Version mismatch warning** - The other instance is on a different Factorio version. Minor differences usually import fine, major versions may fail with `Import failed.`
-- **Import failed.** - The payload arrived but couldn't be imported into the cursor. Usually a Factorio version mismatch between sender and receiver.
+- **... is still being sent.** - A previous send from this player hasn't finished yet. Wait for it to complete before sending another item.
+- **Version mismatch warning** - The other instance is on a different Factorio version, or has a different version of this mod installed. Minor differences usually import fine; major version gaps may fail with `Import failed.`
+- **Import failed.** - The payload arrived but couldn't be imported into the cursor. Usually a Factorio or mod version mismatch between sender and receiver.
 - **Blueprint is in preview.** - The library blueprint hasn't finished syncing with the server. Wait for the sync and resend.
-- **Nothing happens on receive** - Confirm the destination instance was launched with `--enable-lua-udp=<port>`.
+- **Nothing happens on receive** - Confirm the destination instance was launched with `--enable-lua-udp=<port>`. If a previous transfer stalled, wait a moment and try again.
 - **Two copies fighting over the same saves/mods/config** - Both installs share the same user data directory. You may see `Couldn't create lock file Factorio\.lock: 32 Is another instance already running?` when starting the second copy. See the [Factorio Wiki](https://wiki.factorio.com/Application_directory#Changing_the_user_data_directory) for per-platform write paths and how to make a copy portable.
 
 ## License
