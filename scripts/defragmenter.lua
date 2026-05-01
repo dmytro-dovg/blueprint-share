@@ -46,4 +46,8 @@ function Defragmenter:data()
   end
 end
 
+function Defragmenter:progress()
+  return self.total > 0 and self.received / self.total or 0
+end
+
 return Defragmenter

@@ -13,6 +13,7 @@ local consts = {
       frame = {
         main = "blueprint-share-gui-inbox-frame-main",
         content = "blueprint-share-gui-inbox-frame-content",
+        transfer = "blueprint-share-gui-inbox-frame-transfer",
       },
       button = {
         slot = "blueprint-share-gui-inbox-button-slot",
@@ -26,9 +27,13 @@ local consts = {
       label = {
         title = "blueprint-share-gui-inbox-label-title",
         description = "blueprint-share-gui-inbox-label-description",
+        transfer = "blueprint-share-gui-inbox-label-transfer",
       },
       tag = {
         slot = "blueprint-share-gui-inbox-tag-slot",
+      },
+      progress_bar = {
+        transfer = "blueprint-share-gui-inbox-progress-bar-transfer",
       },
       shortcut = "blueprint-share-inbox",
     },
@@ -79,6 +84,13 @@ local function get_mod_gui_button(player)
   return mod_gui.get_button_flow(player)[consts.gui.modgui.button.toggle]
 end
 
+local function get_transfer_frame(player)
+  local frame = get_frame(player)
+  if frame then
+    return frame[consts.gui.inbox.frame.transfer]
+  end
+end
+
 local function estimated_frame_height(slot_count)
   return sizes.titlebar.height
        + sizes.content.padding * 2
@@ -89,7 +101,7 @@ end
 local function build_mod_gui_button(player)
   local flow = mod_gui.get_button_flow(player)
   if not flow then return end
-  flow.add{
+  flow.add {
     type = "sprite-button",
     name = consts.gui.modgui.button.toggle,
     sprite = "blueprint-share-icon",
@@ -100,7 +112,7 @@ end
 
 local function build_frame(player)
   if get_frame(player) then return end
-  local frame = player.gui.screen.add{
+  local frame = player.gui.screen.add {
     type = "frame",
     name = consts.gui.inbox.frame.main,
     direction = "vertical",
@@ -204,6 +216,33 @@ local function build_frame(player)
     }
   end
   return frame
+end
+
+local function build_transfer_frame(player)
+  local frame = get_frame(player)
+  if not frame then return end
+  local transfer_frame = frame.add {
+    type = "frame",
+    direction = "vertical",
+    style = "inside_shallow_frame",
+    name = consts.gui.inbox.frame.transfer,
+  }
+  transfer_frame.style.top_margin = 8
+  transfer_frame.style.padding = 8
+
+  transfer_frame.add {
+    type = "label",
+    name = consts.gui.inbox.label.transfer,
+    style = "bold_label",
+    caption = {"blueprint-share.gui-inbox-transfer-title"},
+  }
+
+  local progress_bar = transfer_frame.add {
+    type = "progressbar",
+    name = consts.gui.inbox.progress_bar.transfer,
+  }
+  progress_bar.style.top_margin = 5
+  progress_bar.style.horizontally_stretchable = true
 end
 
 local function compact(inventory)
@@ -392,6 +431,34 @@ function this.toggle(event)
   local player = Util.valid_player(event)
   if not player then return end
   show(player, not get_frame(player))
+end
+
+function this.clear_progress(player)
+  local transfer_frame = get_transfer_frame(player)
+  if transfer_frame then
+    transfer_frame.destroy()
+  end
+end
+
+function this.set_progress(progress, player)
+  if progress >= 1 then
+    this.clear_progress(player)
+    return
+  end
+
+  show(player, true)
+
+  local transfer_frame = get_transfer_frame(player)
+
+  if not transfer_frame then
+    build_transfer_frame(player)
+    transfer_frame = get_transfer_frame(player)
+  end
+
+  local progress_bar = transfer_frame[consts.gui.inbox.progress_bar.transfer]
+  if progress_bar then
+    progress_bar.value = progress
+  end
 end
 
 function this.on_click(event)
