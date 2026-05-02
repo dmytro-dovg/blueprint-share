@@ -38,10 +38,19 @@ local show_mod_gui_button = {
   default_value = true,
 }
 
+local max_transfer_size = {
+  type = "int-setting",
+  name = "blueprint-share-max-transfer-size",
+  setting_type = "runtime-global",
+  default_value = 512,
+  minimum_value = 0,
+}
+
 data:extend({
   auto_receive,
   destination_port,
   log_level,
   inbox_capacity,
   show_mod_gui_button,
+  max_transfer_size,
 })

@@ -1,20 +1,21 @@
 local Fragmenter = {}
 Fragmenter.__index = Fragmenter
 
-function Fragmenter.new(data, identifier)
-  local self = setmetatable({}, Fragmenter)
-
+function Fragmenter.chunk_size(target)
   -- Each data packet is encoded as:
   --   {"id":<id>,"index":<index>,"total":<total>,"data":"<chunk>"}
   -- Fixed punctuation/keys = 35 bytes.
   -- Integer fields are bounded by their decimal width:
   --   id:    up to 10 digits (math.random max 2^32)
-  --   index: up to 7 digits (= max chunks we'd ever produce)
+  --   index: up to 7 digits (max chunks we'd ever produce)
   --   total: same as index
-  local target_encoded = 4096
   local envelope = 35 + 10 + 7 + 7
   local safety = 8
-  local chunk_size = target_encoded - envelope - safety
+  return target - envelope - safety
+end
+
+function Fragmenter.new(data, identifier, chunk_size)
+  local self = setmetatable({}, Fragmenter)
 
   self.total = math.ceil(#data / chunk_size)
   self.index = 0  -- 0 means metachunk not sent yet

@@ -10,6 +10,8 @@ local Defragmenter = require "scripts.defragmenter"
 local pending = {}
 local defragmenters = {}
 local progress_bar_chunk_threshold = 10
+local target_chunk_size = 4096
+local chunk_size = Fragmenter.chunk_size(target_chunk_size)
 
 local function init_player(player)
   storage.players[player.index] = storage.players[player.index] or {}
@@ -192,6 +194,23 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     end
   end
 
+  -- Reject oversized transfers before any buffering. The receiver does not push data to
+  -- synced game state until a transfer completes, so capping size here keeps a malicious
+  -- sender from forcing the receiver to relay a huge blueprint to the multiplayer server.
+  local max_kib = Settings.max_transfer_size_kib()
+  local size_limit = nil
+  if max_kib > 0 then
+    size_limit = max_kib * 1024
+    local max_chunks = math.ceil(size_limit / chunk_size)
+    if decoded.total > max_chunks then
+      if decoded.game_version and decoded.mod_version then
+        Log.error({"blueprint-share.error-transfer-too-large", max_kib}, player)
+      end
+      Log.debug("Rejected transfer id " .. tostring(decoded.id) .. ": total=" .. decoded.total .. " exceeds " .. max_chunks .. " chunks", player)
+      return
+    end
+  end
+
   local by_id = defragmenters[player.index] or {}
   defragmenters[player.index] = by_id
 
@@ -201,7 +220,7 @@ script.on_event(defines.events.on_udp_packet_received, function(event)
     if next(by_id) then
       return
     end
-    defragmenter = Defragmenter.new(decoded, event.tick)
+    defragmenter = Defragmenter.new(decoded, event.tick, size_limit, chunk_size)
     by_id[decoded.id] = defragmenter
   end
 
@@ -241,9 +260,16 @@ script.on_event("blueprint-share-send", function(event)
     return
   end
 
+  -- Refuse to send anything the receiver would reject anyway.
+  local max_kib = Settings.max_transfer_size_kib()
+  if max_kib > 0 and #data > max_kib * 1024 then
+    Log.error({"blueprint-share.error-send-too-large", localised_type_name, max_kib}, player)
+    return
+  end
+
   if not pending[player.index] then
     pending[player.index] = {
-      data = Fragmenter.new(data, math.random(1, 2^32)),
+      data = Fragmenter.new(data, math.random(1, 2^32), chunk_size),
       port = Settings.destination_port(player),
       type_name = localised_type_name
     }

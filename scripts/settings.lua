@@ -26,4 +26,8 @@ function Settings.show_mod_gui_button(player)
   return get(player, "show-mod-gui-button")
 end
 
+function Settings.max_transfer_size_kib()
+  return settings.global[mod_prefix .. "max-transfer-size"].value
+end
+
 return Settings
