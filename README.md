@@ -41,7 +41,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
 
 ## Settings
 
-Settings live under **Mod settings -> Per player -> Blueprint Share**.
+Per-player settings live under **Mod settings -> Per player -> Blueprint Share**. **Max transfer size** is map-wide - find it under **Mod settings -> Map -> Blueprint Share**.
 
 | Setting | Default | Description |
 |---|---|---|
@@ -50,6 +50,7 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 | Inbox capacity | `5` | Slots in the inbox window (1–16). |
 | Show inbox button | `on` | Show the inbox button in the top-left corner of the screen. |
 | Log level | `Info` | In-game message verbosity. `Quiet` hides all messages. `Debug` shows full diagnostics. The mod log file always records full output. |
+| Max transfer size (KiB) | `512` | Reject incoming and outgoing transfers larger than this. `0` removes the limit. |
 
 ## Limitations
 
@@ -63,6 +64,8 @@ Settings live under **Mod settings -> Per player -> Blueprint Share**.
 
 - **Invalid payload.** - The other instance sent a packet the mod couldn't decode. Usually means a different, unrelated process is sending UDP to your port. Change the port.
 - **Could not send...** - The OS rejected the send. Check that the destination port is valid and that no firewall rule is blocking localhost UDP.
+- **Cannot send ...: exceeds the N KiB limit.** - The item is larger than the **Max transfer size** setting. Raise the limit (or set it to `0` for no cap) or send a smaller item.
+- **Rejected incoming transfer: exceeds the N KiB limit.** - The other instance tried to send something larger than your **Max transfer size**. Same fix - raise the limit on the receiving side, or have the sender break the item up.
 - **... is still being sent.** - A previous send from this player hasn't finished yet. Wait for it to complete before sending another item.
 - **Version mismatch warning** - The other instance is on a different Factorio version, or has a different version of this mod installed. Minor differences usually import fine; major version gaps may fail with `Import failed.`
 - **Import failed.** - The payload arrived but couldn't be imported into the cursor. Usually a Factorio or mod version mismatch between sender and receiver.
