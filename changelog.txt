@@ -1,5 +1,15 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-05-02
+  Features:
+    - Added chunked transfer. Large blueprints, books, and planners are now split across multiple UDP packets and reassembled on the receiver, lifting the prior single-packet size cap.
+    - Added a progress bar in the inbox for in-flight transfers.
+    - Added a Max transfer size setting (map-wide, default 512 KiB; 0 = unlimited). Incoming and outgoing transfers larger than this are rejected.
+    - Receiver now warns on mismatched mod version, in addition to the existing Factorio version check.
+  Changes:
+    - Minimum base game version raised to 2.0.67.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2026-04-28
   Gui:
