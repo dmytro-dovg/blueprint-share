@@ -31,7 +31,7 @@ Two-way sharing between a Steam copy and a second standalone copy:
      - From that folder, run `open ./factorio.app --args -c "$PWD/config.cfg" --enable-lua-udp=25002` (the `-c` path must be absolute). Factorio will create `factorio-data/` alongside `factorio.app` for saves, mods, and config.
 4. **On the standalone,** set **Mod settings -> Per player -> Blueprint Share -> Destination port** to `25001`. The Steam copy needs no change - its default already points at `25002`.
 
-> **One-way only:** Only the receiver needs the launch flag. The sender just needs **Destination port** pointing at the receiver's listening port.
+> **One-way only:** Both sides need `--enable-lua-udp`, but only the receiver's value matters for routing - the sender's value is its source port only.
 
 ## Usage
 
